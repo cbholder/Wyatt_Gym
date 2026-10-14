@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#101416">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Wyatt's Lift Log</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#101416; --bg-soft:#161B1E; --surface:#1D2427; --surface-2:#273034;
+    --border:rgba(255,255,255,0.07); --border-2:rgba(255,255,255,0.15);
+    --text:#E9EDEB; --text-soft:#B2BCB8; --text-mute:#7C8A86; --text-faint:#53605C;
+    --gold:#C9A227; --gold-lit:#E3BE47; --green:#4A8F66; --green-deep:#2E6244;
+    --steel:#8A9BA0; --rust:#B4653A; --red:#C0493F;
+  }
+  html,body{background:var(--bg);color:var(--text);font-family:'Manrope',-apple-system,sans-serif;min-height:100vh;overscroll-behavior-y:none}
+  body{background-image:repeating-linear-gradient(180deg,rgba(255,255,255,.012) 0 1px,transparent 1px 3px)}
+  .app{max-width:460px;margin:0 auto;padding-bottom:110px}
+  .view{display:none}.view.active{display:block}
+  button{font-family:inherit}
+
+  .label{font-family:'Oswald',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.22em;font-weight:600}
+  h1{font-family:'Oswald',sans-serif;font-size:50px;line-height:.95;font-weight:700;letter-spacing:.01em;text-transform:uppercase}
+  h1 em{font-style:normal;color:var(--gold)}
+  .num{font-family:'JetBrains Mono',monospace;font-weight:700}
+
+  /* HOME */
+  .hero{padding:42px 22px 24px;border-bottom:1px solid var(--border)}
+  .hero-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .rule{height:3px;width:52px;background:var(--gold);margin:14px 0 13px}
+  .sub{font-size:14.5px;color:var(--text-soft);line-height:1.55;max-width:330px}
+  .icon-btn{background:var(--surface);border:1px solid var(--border-2);border-radius:4px;width:42px;height:42px;cursor:pointer;color:var(--text-soft);font-size:17px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+  .icon-btn:active{background:var(--surface-2)}
+
+  .stats{display:flex;gap:1px;background:var(--border);margin-bottom:26px}
+  .stat{flex:1;background:var(--bg-soft);padding:16px 8px;text-align:center}
+  .stat-n{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;line-height:1;color:var(--gold)}
+  .stat-l{font-family:'Oswald',sans-serif;font-size:9.5px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.16em;margin-top:7px}
+
+  .sec-label{font-family:'Oswald',sans-serif;font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.2em;font-weight:600;padding:0 22px 12px}
+  .days{padding:0 22px;display:flex;flex-direction:column;gap:10px}
+  .day-card{width:100%;background:var(--surface);border:1px solid var(--border);border-left:3px solid;border-radius:5px;padding:17px 17px 17px 15px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:14px;color:var(--text);transition:transform .12s}
+  .day-card:active{transform:scale(.985);background:var(--surface-2)}
+  .day-b{flex:1;min-width:0}
+  .day-tag{font-family:'Oswald',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.2em;font-weight:600;margin-bottom:4px;color:var(--text-mute)}
+  .day-name{font-family:'Oswald',sans-serif;font-size:27px;font-weight:700;letter-spacing:.06em;line-height:1;margin-bottom:6px}
+  .day-meta{font-size:12px;color:var(--text-mute);line-height:1.45}
+  .day-arrow{font-size:18px;color:var(--text-faint)}
+  .day-card.today{border-color:var(--border-2);background:var(--bg-soft)}
+  .today-pill{font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:.16em;font-weight:600;text-transform:uppercase;background:var(--gold);color:#101416;padding:2px 6px;border-radius:2px;margin-left:8px;vertical-align:3px}
+
+  .wide-btn{width:calc(100% - 44px);margin:10px 22px 0;background:transparent;border:1px solid var(--border-2);border-radius:4px;padding:15px;cursor:pointer;font-family:'Oswald',sans-serif;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:500;color:var(--text-soft);display:flex;align-items:center;justify-content:center;gap:8px}
+  .wide-btn:active{background:var(--surface)}
+  .btn-row{display:flex;gap:10px;padding:10px 22px 0}
+  .btn-row .wide-btn{width:auto;flex:1;margin:0}
+
+  .note-card{margin:22px 22px 0;background:var(--bg-soft);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:4px;padding:16px 17px;font-size:13px;color:var(--text-soft);line-height:1.62}
+  .note-card b{font-family:'Oswald',sans-serif;color:var(--gold);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:12.5px;display:block;margin-bottom:6px}
+
+  /* RESUME */
+  .resume{margin:0 22px 22px;background:var(--bg-soft);border:1px solid var(--border-2);border-left:3px solid var(--green);border-radius:4px;padding:16px 17px;display:none}
+  .resume.on{display:block}
+  .resume-t{font-family:'Oswald',sans-serif;font-size:19px;font-weight:600;letter-spacing:.04em;margin-bottom:4px}
+  .resume-d{font-size:12.5px;color:var(--text-mute);line-height:1.45;margin-bottom:13px}
+  .resume-r{display:flex;gap:8px}
+  .resume-r button{flex:1;border-radius:4px;padding:12px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;cursor:pointer;border:none}
+  .r-go{background:var(--green);color:#0C100E}
+  .r-no{background:transparent;border:1px solid var(--border-2);color:var(--text-mute)}
+
+  /* WORKOUT */
+  .whead{padding:18px 22px 0;display:flex;align-items:center;gap:11px}
+  .back{background:var(--surface);border:1px solid var(--border-2);border-radius:4px;padding:10px 13px;cursor:pointer;color:var(--text-soft);font-size:14px;flex-shrink:0}
+  .wtitle{font-family:'Oswald',sans-serif;font-size:30px;font-weight:700;letter-spacing:.06em;line-height:1}
+  .wtag{font-family:'Oswald',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.2em;font-weight:600;margin-bottom:4px}
+  .edit-btn{background:var(--surface);border:1px solid var(--border-2);border-radius:4px;padding:11px 12px;cursor:pointer;color:var(--text-mute);font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:500;flex-shrink:0}
+  .edit-btn.on{border-color:var(--gold);color:var(--gold)}
+
+  .prog{padding:16px 22px 0}
+  .prog-bg{height:4px;background:var(--surface-2);overflow:hidden;margin-bottom:8px}
+  .prog-fill{height:100%;transition:width .35s cubic-bezier(.4,0,.2,1)}
+  .prog-l{font-family:'Oswald',sans-serif;font-size:10.5px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.16em;display:flex;justify-content:space-between}
+
+  .exlist{padding:18px 22px 0;display:flex;flex-direction:column;gap:9px}
+  .ex{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:15px;transition:opacity .2s}
+  .ex.done{opacity:.42}
+  .ex-top{display:flex;align-items:flex-start;gap:12px}
+  .chk{width:27px;height:27px;border-radius:3px;border:2px solid var(--border-2);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#101416;transition:all .15s;margin-top:1px}
+  .ex-i{flex:1;min-width:0}
+  .ex-n{font-size:15.5px;font-weight:700;margin-bottom:3px;line-height:1.3}
+  .ex.done .ex-n{text-decoration:line-through}
+  .ex-d{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--gold);font-weight:600}
+  .ex-note{font-size:12px;color:var(--text-mute);margin-top:5px;line-height:1.5}
+  .ex-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .badge{font-family:'Oswald',sans-serif;font-size:9px;text-transform:uppercase;letter-spacing:.13em;font-weight:600;padding:3px 7px;border-radius:2px}
+  .b-machine{background:rgba(138,155,160,.17);color:var(--steel)}
+  .b-key{background:rgba(74,143,102,.18);color:var(--green)}
+  .b-core{background:rgba(180,101,58,.18);color:var(--rust)}
+  .b-pr{background:var(--gold);color:#101416}
+  .ex-x{background:transparent;border:none;color:var(--text-faint);font-size:17px;cursor:pointer;padding:2px 5px;flex-shrink:0;line-height:1}
+  .ex-move{display:none;gap:5px;flex-shrink:0;flex-direction:column}
+  .ex.editing .ex-move{display:flex}
+  .ex-move button{background:var(--surface-2);border:1px solid var(--border);border-radius:3px;width:28px;height:24px;color:var(--text-soft);font-size:12px;cursor:pointer;line-height:1}
+
+  .ex-row{display:flex;gap:7px;margin-top:12px;margin-left:39px;flex-wrap:wrap}
+  .mini{background:transparent;border:1px solid var(--border-2);border-radius:3px;padding:8px 12px;cursor:pointer;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--text-mute);font-weight:500}
+  .mini:active{background:var(--surface-2)}
+  .mini.on{border-color:var(--gold);color:var(--gold)}
+  .logged{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);margin-top:10px;margin-left:39px;font-weight:600;line-height:1.55}
+  .logged.prev{color:var(--text-faint);font-weight:400}
+  .nudge{font-size:12px;color:var(--gold);margin-top:7px;margin-left:39px;font-weight:700;line-height:1.45}
+  .best-l{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-faint);margin-top:6px;margin-left:39px}
+
+  /* SET LOGGER */
+  .sets{margin-top:12px;margin-left:39px;display:none;flex-direction:column;gap:7px}
+  .sets.open{display:flex}
+  .set-row{display:flex;gap:7px;align-items:center}
+  .set-n{font-family:'Oswald',sans-serif;font-size:10px;color:var(--text-faint);width:30px;flex-shrink:0;text-transform:uppercase;letter-spacing:.11em;font-weight:600}
+  .inp{flex:1;min-width:0;background:var(--bg);border:1px solid var(--border-2);border-radius:3px;padding:10px 6px;font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--text);text-align:center;-webkit-appearance:none;appearance:none}
+  .inp:focus{outline:none;border-color:var(--gold)}
+  .unit{font-family:'Oswald',sans-serif;font-size:10px;color:var(--text-faint);flex-shrink:0;width:26px;text-transform:uppercase;letter-spacing:.08em}
+  .save{background:var(--gold);color:#101416;border:none;border-radius:3px;padding:12px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.16em;text-transform:uppercase;margin-top:3px}
+  .addset{background:transparent;border:1px dashed var(--border-2);border-radius:3px;padding:9px;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--text-mute);cursor:pointer}
+
+  /* REST TIMER */
+  .rest{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);width:calc(100% - 44px);max-width:416px;background:var(--surface-2);border:1px solid var(--border-2);border-left:3px solid var(--gold);border-radius:4px;padding:13px 17px;display:none;align-items:center;gap:13px;z-index:50;box-shadow:0 8px 30px rgba(0,0,0,.55)}
+  .rest.on{display:flex}
+  .rest-t{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:var(--gold);min-width:66px}
+  .rest-l{flex:1;font-family:'Oswald',sans-serif;font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.18em;font-weight:600}
+  .rest-x{background:transparent;border:1px solid var(--border-2);border-radius:3px;padding:8px 12px;color:var(--text-soft);font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
+
+  /* TOAST */
+  .toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-150%);width:calc(100% - 44px);max-width:416px;background:var(--surface-2);border:1px solid var(--gold);border-left:4px solid var(--gold);border-radius:4px;padding:14px 16px;z-index:300;transition:transform .3s cubic-bezier(.2,.8,.2,1);box-shadow:0 10px 34px rgba(0,0,0,.6)}
+  .toast.on{transform:translateX(-50%) translateY(0)}
+  .toast-t{font-family:'Oswald',sans-serif;font-size:17px;color:var(--gold);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+  .toast-d{font-size:12.5px;color:var(--text-soft);margin-top:3px;line-height:1.45}
+
+  .addbtn{margin:14px 22px 0;width:calc(100% - 44px);background:transparent;border:1px dashed var(--border-2);border-radius:4px;padding:15px;cursor:pointer;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-mute)}
+  .addbtn:active{background:var(--surface)}
+
+  .noteinp{margin:14px 22px 0;width:calc(100% - 44px);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:13px 15px;font-family:inherit;font-size:14px;color:var(--text);resize:none;line-height:1.5}
+  .noteinp:focus{outline:none;border-color:var(--gold)}
+
+  .finish{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);width:calc(100% - 44px);max-width:416px;background:var(--gold);color:#101416;border:none;border-radius:4px;padding:18px;font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:.2em;text-transform:uppercase;box-shadow:0 8px 28px rgba(0,0,0,.5);z-index:40}
+
+  /* LIBRARY */
+  .lib-search{margin:0 22px 14px}
+  .lib-search input{width:100%;background:var(--surface);border:1px solid var(--border-2);border-radius:4px;padding:13px 15px;font-family:inherit;font-size:15px;color:var(--text)}
+  .lib-search input:focus{outline:none;border-color:var(--gold)}
+  .chips{display:flex;gap:7px;overflow-x:auto;padding:0 22px 14px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{background:var(--surface);border:1px solid var(--border-2);border-radius:3px;padding:9px 14px;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-mute);cursor:pointer;white-space:nowrap;font-weight:500;flex-shrink:0}
+  .chip.on{background:var(--gold);color:#101416;border-color:var(--gold);font-weight:700}
+  .lib-list{padding:0 22px;display:flex;flex-direction:column;gap:8px}
+  .lib-item{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:14px 15px;display:flex;align-items:center;gap:13px;cursor:pointer;text-align:left;color:var(--text);width:100%}
+  .lib-item:active{background:var(--surface-2)}
+  .lib-i{flex:1;min-width:0}
+  .lib-n{font-size:14.5px;font-weight:700;margin-bottom:3px}
+  .lib-d{font-size:12px;color:var(--text-mute);line-height:1.45}
+  .lib-plus{font-size:22px;flex-shrink:0;font-weight:300}
+  .lib-group{font-family:'Oswald',sans-serif;font-size:10.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.2em;font-weight:600;padding:16px 22px 8px}
+
+  /* HISTORY */
+  .hist{padding:0 22px;display:flex;flex-direction:column;gap:10px}
+  .hcard{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--border-2);border-radius:4px;padding:16px;position:relative}
+  .hdate{font-family:'Oswald',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.18em;font-weight:600;margin-bottom:6px}
+  .hname{font-family:'Oswald',sans-serif;font-size:21px;font-weight:700;letter-spacing:.05em;margin-bottom:4px}
+  .hmeta{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text-mute)}
+  .hlogs{margin-top:11px;display:flex;flex-direction:column;gap:4px;padding-top:11px;border-top:1px solid var(--border)}
+  .hlog{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text-soft)}
+  .hnote{margin-top:9px;font-size:12.5px;color:var(--text-mute);font-style:italic;line-height:1.5}
+  .hdel{position:absolute;top:13px;right:13px;background:transparent;border:none;color:var(--text-faint);font-size:14px;cursor:pointer;padding:4px 7px;line-height:1}
+  .empty{text-align:center;padding:70px 24px;color:var(--text-mute);font-size:14px;line-height:1.6}
+  .empty b{font-family:'Oswald',sans-serif;font-size:26px;color:var(--text-soft);display:block;margin-bottom:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+
+  /* PROGRESS */
+  .pstats{display:flex;gap:1px;background:var(--border);margin:0 22px 14px}
+  .pstat{flex:1;background:var(--bg-soft);padding:14px 8px;text-align:center}
+  .pstat-n{font-family:'JetBrains Mono',monospace;font-size:21px;font-weight:700;line-height:1;color:var(--gold)}
+  .pstat-l{font-family:'Oswald',sans-serif;font-size:9px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.14em;margin-top:6px;line-height:1.4}
+  .chartwrap{margin:0 22px 14px;background:var(--bg-soft);border:1px solid var(--border);border-radius:4px;padding:16px 15px 12px}
+  .chart-t{font-family:'Oswald',sans-serif;font-size:10.5px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.18em;font-weight:600;margin-bottom:14px;padding:0 2px}
+  .chart svg{width:100%;height:150px;display:block;overflow:visible}
+  .plist{padding:0 22px;display:flex;flex-direction:column;gap:7px}
+  .prow{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:13px 15px;display:flex;align-items:center;gap:12px;width:100%;text-align:left;color:var(--text);cursor:pointer}
+  .prow:active{background:var(--surface-2)}
+  .prow.on{border-color:var(--gold)}
+  .prow-i{flex:1;min-width:0}
+  .prow-n{font-size:13.5px;font-weight:700;margin-bottom:3px}
+  .prow-d{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-mute)}
+  .prow-v{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:var(--gold);flex-shrink:0}
+  .trend{font-weight:700}
+  .t-up{color:var(--green)} .t-flat{color:var(--text-mute)} .t-dn{color:var(--rust)}
+
+  /* BODYWEIGHT */
+  .bwform{margin:0 22px 14px;display:flex;gap:8px}
+  .bwform input{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border-2);border-radius:4px;padding:13px 12px;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text)}
+  .bwform input:focus{outline:none;border-color:var(--gold)}
+  .bwform button{background:var(--gold);color:#101416;border:none;border-radius:4px;padding:13px 18px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;cursor:pointer;flex-shrink:0}
+  .bwlist{padding:0 22px;display:flex;flex-direction:column;gap:7px}
+  .bwrow{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:12px 15px;display:flex;align-items:center;gap:12px}
+  .bwrow-d{flex:1;font-size:12.5px;color:var(--text-soft)}
+  .bwrow-v{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700}
+  .bwrow-x{background:transparent;border:none;color:var(--text-faint);font-size:14px;cursor:pointer;padding:3px 5px}
+
+  /* MODAL */
+  .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.76);z-index:200;align-items:flex-end}
+  .ov.on{display:flex}
+  .modal{background:var(--bg-soft);border-radius:8px 8px 0 0;padding:26px 22px 40px;width:100%;max-width:460px;margin:0 auto;max-height:86vh;overflow-y:auto;border-top:2px solid var(--gold);position:relative}
+  .modal-x{position:absolute;top:19px;right:19px;background:var(--surface);border:none;border-radius:3px;width:32px;height:32px;cursor:pointer;color:var(--text-mute);font-size:15px}
+  .modal h2{font-family:'Oswald',sans-serif;font-size:27px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px}
+  .st{font-family:'Oswald',sans-serif;font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.2em;font-weight:600;margin:22px 0 10px}
+  .sa{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:15px 17px;cursor:pointer;text-align:left;margin-bottom:8px;display:flex;align-items:center;gap:13px;color:var(--text)}
+  .sa:active{background:var(--surface-2)}
+  .sa-i{font-size:18px;flex-shrink:0;width:22px;color:var(--text-mute)}
+  .sa-l{font-size:14.5px;font-weight:700}
+  .sa-d{font-size:12px;color:var(--text-mute);margin-top:2px;line-height:1.4}
+  .sa.dg .sa-l{color:var(--red)}
+  .drop{background:var(--surface);border:2px dashed var(--border-2);border-radius:4px;padding:19px;text-align:center;margin-bottom:8px;cursor:pointer;color:var(--text-mute);font-size:12.5px;line-height:1.6;display:none}
+  .drop.on{display:block}
+  .drop b{color:var(--text);display:block;margin-bottom:5px;font-size:14px}
+  #fin{display:none}
+  .cbtn{width:100%;background:var(--gold);color:#101416;border:none;border-radius:4px;padding:14px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.16em;text-transform:uppercase;margin-top:7px;display:none}
+  .cbtn.on{display:block}
+  .cbtn.alt{background:transparent;border:1px solid var(--border-2);color:var(--text-soft)}
+  .ver{text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-faint);letter-spacing:.12em;margin-top:24px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HOME -->
+<div id="home-view" class="view active">
+  <div class="hero">
+    <div class="hero-row">
+      <div style="flex:1">
+        <div class="label" style="color:var(--gold)">Wyatt's Lift Log</div>
+        <div class="rule"></div>
+        <h1>Show up.<br>Add <em>weight</em>.<br>Repeat.</h1>
+        <div class="rule" style="width:34px;background:var(--border-2);margin-bottom:14px"></div>
+        <p class="sub">Full body, three days a week, a day of rest in between. Every session trains everything &mdash; so a day you miss costs you a third, not the whole week.</p>
+      </div>
+      <button class="icon-btn" onclick="openSet()">&#9881;</button>
+    </div>
+  </div>
+
+  <div style="height:26px"></div>
+
+  <div class="resume" id="resume">
+    <div class="resume-t" id="resume-t">Unfinished session</div>
+    <div class="resume-d" id="resume-d"></div>
+    <div class="resume-r">
+      <button class="r-go" onclick="resumeGo()">Resume</button>
+      <button class="r-no" onclick="resumeDrop()">Scrap it</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="s-tot">0</div><div class="stat-l">Sessions</div></div>
+    <div class="stat"><div class="stat-n" id="s-week">0</div><div class="stat-l">This week</div></div>
+    <div class="stat"><div class="stat-n" id="s-vol">0</div><div class="stat-l">Lbs moved</div></div>
+  </div>
+
+  <div class="sec-label">The rotation</div>
+  <div class="days" id="days"></div>
+
+  <div class="btn-row">
+    <button class="wide-btn" onclick="go('progress')">Progress</button>
+    <button class="wide-btn" onclick="go('bw')">Bodyweight</button>
+  </div>
+  <button class="wide-btn" onclick="go('history')">History (<span id="hcount">0</span>)</button>
+
+  <div class="note-card">
+    <b>Why full body</b>
+    Three sessions, every other day, each one hits legs, chest, back, shoulders and arms. Everything gets trained three times a week instead of once, and that frequency is what actually drives strength up at your age.<br><br>
+    ALPHA is heavy. BRAVO is volume with different lifts so nothing gets beat up. CHARLIE is lighter and faster.
+  </div>
+  <div class="note-card" style="border-left-color:var(--green)">
+    <b style="color:var(--green)">Only got 20 minutes?</b>
+    Do the first five. Every day is built so the top five cover your whole body. Anything past five is bonus, not the point.
+  </div>
+  <div class="note-card" style="border-left-color:var(--steel)">
+    <b style="color:var(--steel)">How to add weight</b>
+    Hit the top of the rep range on every set and the app tells you to go up. Small jumps &mdash; 5 lbs on machines and cables, 2.5 per side on a bar. Small jumps you keep beat big jumps you lose.<br><br>
+    Form first, always. If the last two reps get ugly, the weight is too heavy. And get a spotter before you load the bench up.
+  </div>
+</div>
+
+<!-- WORKOUT -->
+<div id="workout-view" class="view">
+  <div class="whead">
+    <button class="back" onclick="leaveWorkout()">&#8592;</button>
+    <div style="flex:1">
+      <div class="wtag" id="w-tag"></div>
+      <div class="wtitle" id="w-title"></div>
+    </div>
+    <button class="edit-btn" id="edit-btn" onclick="tgEdit()">Edit</button>
+  </div>
+  <div class="prog">
+    <div class="prog-bg"><div class="prog-fill" id="w-fill" style="width:0%"></div></div>
+    <div class="prog-l"><span id="w-lab">0 of 0 done</span><span id="w-vol"></span></div>
+  </div>
+  <div class="exlist" id="exlist"></div>
+  <button class="addbtn" onclick="openLib()">+ Add an exercise</button>
+  <textarea class="noteinp" id="w-note" rows="2" placeholder="Notes on today (optional)" oninput="saveActive()"></textarea>
+  <div style="padding:18px 22px 0" id="w-tip"></div>
+  <div class="rest" id="rest">
+    <div class="rest-t" id="rest-t">1:00</div>
+    <div class="rest-l">Rest</div>
+    <button class="rest-x" onclick="stopRest()">Skip</button>
+  </div>
+  <button class="finish" onclick="finish()">Finish session</button>
+</div>
+
+<!-- LIBRARY -->
+<div id="lib-view" class="view">
+  <div class="whead" style="padding-bottom:16px">
+    <button class="back" onclick="go('workout')">&#8592;</button>
+    <div style="flex:1">
+      <div class="wtag" style="color:var(--gold)">Exercise library</div>
+      <div class="wtitle" style="font-size:24px">Add to today</div>
+    </div>
+  </div>
+  <div class="lib-search"><input type="text" id="lib-q" placeholder="Search exercises..." oninput="renderLib()"></div>
+  <div class="chips" id="chips"></div>
+  <div id="lib-list"></div>
+  <div style="height:40px"></div>
+</div>
+
+<!-- PROGRESS -->
+<div id="progress-view" class="view">
+  <div class="whead" style="padding-bottom:18px">
+    <button class="back" onclick="go('home')">&#8592;</button>
+    <div style="flex:1">
+      <div class="wtag" style="color:var(--gold)">Progress</div>
+      <div class="wtitle" id="p-title" style="font-size:24px">The numbers</div>
+    </div>
+  </div>
+  <div class="pstats" id="p-stats"></div>
+  <div id="p-chart"></div>
+  <div class="sec-label" style="padding-top:6px">Tap a lift for its chart</div>
+  <div class="plist" id="p-list"></div>
+  <div style="height:40px"></div>
+</div>
+
+<!-- BODYWEIGHT -->
+<div id="bw-view" class="view">
+  <div class="whead" style="padding-bottom:18px">
+    <button class="back" onclick="go('home')">&#8592;</button>
+    <div style="flex:1">
+      <div class="wtag" style="color:var(--green)">Bodyweight</div>
+      <div class="wtitle" style="font-size:24px">Weigh-ins</div>
+    </div>
+  </div>
+  <div class="pstats" id="bw-stats"></div>
+  <div id="bw-chart"></div>
+  <div class="sec-label">Log a weigh-in</div>
+  <div class="bwform">
+    <input type="date" id="bw-date">
+    <input type="number" inputmode="decimal" id="bw-val" placeholder="lbs">
+    <button onclick="addBW()">Add</button>
+  </div>
+  <div class="sec-label" style="padding-top:12px">Log</div>
+  <div class="bwlist" id="bw-list"></div>
+  <div style="height:40px"></div>
+</div>
+
+<!-- HISTORY -->
+<div id="history-view" class="view">
+  <div class="whead" style="padding-bottom:20px">
+    <button class="back" onclick="go('home')">&#8592;</button>
+    <div class="wtitle" style="font-size:26px">History</div>
+  </div>
+  <div class="hist" id="hist"></div>
+  <div style="height:40px"></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="ov" id="setmodal" onclick="closeSet(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-x" onclick="closeSet()">&#10005;</button>
+    <div class="label" style="color:var(--gold)">Settings</div>
+    <h2>Data &amp; backup</h2>
+    <p style="font-size:12.5px;color:var(--text-mute);line-height:1.5;margin-top:4px">Your sessions live on this phone, in this browser. Export a backup now and then so nothing can get lost.</p>
+
+    <div class="st">Rest timer</div>
+    <div style="display:flex;gap:8px;margin-bottom:4px" id="rest-opts"></div>
+
+    <div class="st">Backup</div>
+    <button class="sa" onclick="exp()"><span class="sa-i">&#8595;</span><div><div class="sa-l">Export everything</div><div class="sa-d">Every session, every weight, every weigh-in, as one .json</div></div></button>
+    <button class="sa" onclick="tgDrop()"><span class="sa-i">&#8593;</span><div><div class="sa-l">Import a backup</div><div class="sa-d">Merge it in, or replace what's here</div></div></button>
+    <div class="drop" id="drop" onclick="document.getElementById('fin').click()">
+      <b>Tap to choose your file</b>Pick the .json you exported before
+      <div id="fname" style="margin-top:7px;color:var(--gold);font-weight:700"></div>
+    </div>
+    <input type="file" id="fin" accept=".json,application/json" onchange="pick(event)">
+    <button class="cbtn" id="cbtn" onclick="doImp(1)">Merge into what's here</button>
+    <button class="cbtn alt" id="cbtn2" onclick="doImp(0)">Replace everything instead</button>
+
+    <div class="st">Reset</div>
+    <button class="sa dg" onclick="resetDays()"><span class="sa-i">&#8635;</span><div><div class="sa-l">Reset the rotation</div><div class="sa-d">Puts ALPHA, BRAVO and CHARLIE back as built (history is kept)</div></div></button>
+    <button class="sa dg" onclick="clearHist()"><span class="sa-i">&#10005;</span><div><div class="sa-l">Clear all history</div><div class="sa-d">Deletes every logged session permanently</div></div></button>
+
+    <div class="ver" id="ver"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <div class="toast-t" id="toast-t"></div>
+  <div class="toast-d" id="toast-d"></div>
+</div>
+
+</div>
+
+<script>
+/* ---------- SEED DATA (Lift Log export 2026-10-13) ---------- */
+var SEED_VERSION = "2026-10-13a";
+var PLAN_VERSION = "2026-10-13-fullbody";
+var SEED = {"history":[{"date":"2026-10-05T10:15:03.948Z","day":"mon","name":"Pull & Chest","color":"#C9A227","done":5,"total":5,"logs":[{"n":"Barbell bench press","sets":[{"reps":"8","wt":"65"},{"reps":"8","wt":"75"},{"reps":"8","wt":"85"}]},{"n":"Wide grip lat pulldown","sets":[{"reps":"10","wt":"50"},{"reps":"10","wt":"50"},{"reps":"8","wt":"62.5"},{"reps":"7","wt":"62.5"}]},{"n":"Seated cable row","sets":[{"reps":"10","wt":"50"},{"reps":"8","wt":"62.5"},{"reps":"8","wt":"62.5"}]},{"n":"Lat pullover","sets":[{"reps":"10","wt":"70"},{"reps":"10","wt":"80"}]},{"n":"Machine lateral raise","sets":[{"reps":"10","wt":"10"},{"reps":"10","wt":"20"},{"reps":"10","wt":"20"}]}],"note":""},{"date":"2026-09-16T11:19:16.682Z","day":"sat","name":"Legs","color":"#4A8F66","done":3,"total":3,"logs":[{"n":"Leg press","sets":[{"reps":"8","wt":"90"},{"reps":"8","wt":"140"},{"reps":"8","wt":"160"},{"reps":"8","wt":"170"}]},{"n":"Leg extensions","sets":[{"reps":"10","wt":"45"},{"reps":"10","wt":"45"},{"reps":"10","wt":"45"}]},{"n":"Seated leg curl","sets":[{"reps":"10","wt":"50"},{"reps":"10","wt":"50"},{"reps":"8","wt":"50"}]}],"note":""},{"date":"2026-09-16T11:10:43.383Z","day":"wed","name":"Shoulders & Arms","color":"#4A8F66","done":1,"total":1,"logs":[{"n":"Reverse pec deck","sets":[{"reps":"10","wt":"50"},{"reps":"15","wt":"50"},{"reps":"10","wt":"50"}]}],"note":""},{"date":"2026-09-12T09:48:09.948Z","day":"sat","name":"Legs","color":"#4A8F66","done":3,"total":3,"logs":[{"n":"Leg extensions","sets":[{"reps":"10","wt":"45"},{"reps":"10","wt":"60"},{"reps":"8","wt":"80"}]},{"n":"Seated leg curl","sets":[{"reps":"8","wt":"50"}]},{"n":"Leg press","sets":[{"reps":"8","wt":"90"},{"reps":"8","wt":"140"},{"reps":"8","wt":"160"},{"reps":"8","wt":"170"}]}],"note":""},{"date":"2026-09-11T09:43:17.880Z","day":"fri","name":"Push & Pull","color":"#8A9BA0","done":5,"total":5,"logs":[{"n":"Chest supported row","sets":[{"reps":"10","wt":"62.5"},{"reps":"8","wt":"75"},{"reps":"8","wt":"75"}]},{"n":"Neutral grip lat pulldown","sets":[{"reps":"8","wt":"90"},{"reps":"8","wt":"105"},{"reps":"8","wt":"110"}]},{"n":"Smith machine shoulder press","sets":[{"reps":"10","wt":"75"},{"reps":"8","wt":"95"},{"reps":"12","wt":"95"}]},{"n":"Incline bench press","sets":[{"reps":"8","wt":"45"},{"reps":"8","wt":"65"},{"reps":"7","wt":"65"},{"reps":"6","wt":"65"}]},{"n":"Cable curl (straight bar)","sets":[{"reps":"8","wt":"100"},{"reps":"8","wt":"80"}]}],"note":""},{"date":"2026-09-07T09:38:53.000Z","day":"mon","name":"Pull & Chest","color":"#C9A227","done":1,"total":1,"logs":[{"n":"Barbell bench press","sets":[{"reps":"8","wt":"65"},{"reps":"8","wt":"75"},{"reps":"9","wt":"85"}]}],"note":""},{"date":"2026-09-04T09:45:02.673Z","day":"fri","name":"Push & Pull","color":"#8A9BA0","done":3,"total":3,"logs":[{"n":"Neutral grip lat pulldown","sets":[{"reps":"8","wt":"90"},{"reps":"8","wt":"100"},{"reps":"8","wt":"105"}]},{"n":"Chest supported row","sets":[{"reps":"10","wt":"75"},{"reps":"8","wt":"75"},{"reps":"8","wt":"80"}]},{"n":"Smith machine shoulder press","sets":[{"reps":"10","wt":"75"},{"reps":"8","wt":"85"},{"reps":"8","wt":"100"}]}],"note":""},{"date":"2026-08-31T11:35:55.380Z","day":"mon","name":"Pull & Chest","color":"#C9A227","done":2,"total":2,"logs":[{"n":"Wide grip lat pulldown","sets":[{"reps":"8","wt":"95"},{"reps":"8","wt":"100"},{"reps":"8","wt":"105"}]},{"n":"Lat pullover","sets":[{"reps":"8","wt":"70"},{"reps":"8","wt":"80"},{"reps":"8","wt":"80"}]}],"note":""},{"date":"2026-08-28T09:56:40.036Z","day":"fri","name":"Push & Pull","color":"#8A9BA0","done":6,"total":6,"logs":[{"n":"Chest supported row","sets":[{"reps":"8","wt":"87.5"},{"reps":"8","wt":"100"},{"reps":"8","wt":"87.5"}]},{"n":"Neutral grip lat pulldown","sets":[{"reps":"8","wt":"90"},{"reps":"8","wt":"95"},{"reps":"8","wt":"90"},{"reps":"8","wt":"90"}]},{"n":"Cable curl (straight bar)","sets":[{"reps":"8","wt":"20"},{"reps":"8","wt":"20"}]},{"n":"Smith machine shoulder press","sets":[{"reps":"10","wt":"75"},{"reps":"8","wt":"85"},{"reps":"8","wt":"95"}]},{"n":"Incline dumbbell press","sets":[{"reps":"8","wt":"20"},{"reps":"8","wt":"25"},{"reps":"8","wt":"25"}]},{"n":"Lateral raises","sets":[{"reps":"8","wt":"10"},{"reps":"8","wt":"10"},{"reps":"8","wt":"10"}]}],"note":""},{"date":"2026-08-24T11:38:55.564Z","day":"mon","name":"Pull & Chest","color":"#C9A227","done":2,"total":2,"logs":[{"n":"Wide grip lat pulldown","sets":[{"reps":"8","wt":"95"},{"reps":"8","wt":"100"},{"reps":"7","wt":"100"}]},{"n":"Lat pullover","sets":[{"reps":"8","wt":"70"},{"reps":"10","wt":"80"},{"reps":"10","wt":"80"}]}],"note":""},{"date":"2026-08-21T09:42:17.939Z","day":"fri","name":"Push & Pull","color":"#8A9BA0","done":4,"total":4,"logs":[{"n":"Chest supported row","sets":[{"reps":"8","wt":"75"},{"reps":"8","wt":"87.5"},{"reps":"8","wt":"87.5"}]},{"n":"Neutral grip lat pulldown","sets":[{"reps":"8","wt":"70"},{"reps":"8","wt":"100"},{"reps":"8","wt":"95"},{"reps":"8","wt":"110"}]},{"n":"Smith machine shoulder press","sets":[{"reps":"10","wt":"75"},{"reps":"8","wt":"85"},{"reps":"8","wt":"85"}]},{"n":"Lateral raises","sets":[{"reps":"8","wt":"10"},{"reps":"8","wt":"10"},{"reps":"8","wt":"10"}]}],"note":""},{"date":"2026-08-17T12:34:56.341Z","day":"mon","name":"Pull & Chest","color":"#C9A227","done":4,"total":4,"logs":[{"n":"Barbell bench press","sets":[{"reps":"10","wt":"45"},{"reps":"10","wt":"65"},{"reps":"8","wt":"75"}]},{"n":"Machine lateral raise","sets":[{"reps":"10","wt":"10"},{"reps":"10","wt":"10"},{"reps":"10","wt":"10"}]},{"n":"Seated cable row","sets":[{"reps":"10","wt":"60"},{"reps":"8","wt":"40"},{"reps":"8","wt":"80"}]},{"n":"Wide grip lat pulldown","sets":[{"reps":"8","wt":"90"},{"reps":"8","wt":"95"},{"reps":"8","wt":"90"},{"reps":"8","wt":"90"}]}],"note":""},{"date":"2026-08-14T09:52:28.011Z","day":"fri","name":"Push & Pull","color":"#8A9BA0","done":7,"total":7,"logs":[{"n":"Chest supported row","sets":[{"reps":"8","wt":"75"},{"reps":"8","wt":"87.5"},{"reps":"8","wt":"87.5"},{"reps":"8","wt":"87.5"}]},{"n":"Neutral grip lat pulldown","sets":[{"reps":"8","wt":"110"},{"reps":"8","wt":"100"},{"reps":"8","wt":"100"},{"reps":"7","wt":"110"}]},{"n":"Pec deck chest fly","sets":[{"reps":"8","wt":"90"},{"reps":"8","wt":"90"},{"reps":"8","wt":"90"}]},{"n":"Cable curl (straight bar)","sets":[{"reps":"8","wt":"50"},{"reps":"10","wt":"70"}]},{"n":"Lateral raises","sets":[{"reps":"10","wt":"20"},{"reps":"10","wt":"20"},{"reps":"10","wt":"20"}]},{"n":"Single arm dumbbell row","sets":[{"reps":"8","wt":"30"},{"reps":"8","wt":"30"}]},{"n":"Incline dumbbell press","sets":[{"reps":"10","wt":"20"},{"reps":"10","wt":"25"},{"reps":"6","wt":"25"}]}],"note":""},{"date":"2026-08-13T09:34:19.844Z","day":"sat","name":"Legs","color":"#4A8F66","done":6,"total":6,"logs":[{"n":"Leg extensions","sets":[{"reps":"10","wt":"45"},{"reps":"10","wt":"60"},{"reps":"8","wt":"80"}]},{"n":"Leg press","sets":[{"reps":"12","wt":"0"},{"reps":"12","wt":"50"},{"reps":"12","wt":"70"},{"reps":"10","wt":"90"}]},{"n":"Single leg press","sets":[{"reps":"12","wt":"0"},{"reps":"12","wt":"20"}]},{"n":"Seated leg curl","sets":[{"reps":"10","wt":"50"},{"reps":"10","wt":"50"},{"reps":"10","wt":"50"}]},{"n":"Standing calf raise","sets":[{"reps":"10","wt":"100"},{"reps":"10","wt":"100"},{"reps":"12","wt":"0"}]},{"n":"Back extensions","sets":[{"reps":"8","wt":"25"},{"reps":"8","wt":"30"}]}],"note":""},{"date":"2026-08-12T09:41:33.971Z","day":"wed","name":"Shoulders & Arms","color":"#4A8F66","done":7,"total":7,"logs":[{"n":"Reverse pec deck","sets":[{"reps":"10","wt":"50"},{"reps":"10","wt":"50"},{"reps":"10","wt":"50"}]},{"n":"Lateral raises","sets":[{"reps":"10","wt":"10"},{"reps":"10","wt":"10"},{"reps":"10","wt":"10"},{"reps":"10","wt":"10"}]},{"n":"Rope pushdown","sets":[{"reps":"10","wt":"60"},{"reps":"8","wt":"65"}]},{"n":"Face pulls","sets":[{"reps":"10","wt":"60"},{"reps":"10","wt":"65"},{"reps":"10","wt":"65"}]},{"n":"Overhead rope extension","sets":[{"reps":"10","wt":"50"},{"reps":"10","wt":"60"}]},{"n":"Barbell curl","sets":[{"reps":"10","wt":"20"}]},{"n":"Hammer curls","sets":[{"reps":"10","wt":"20"},{"reps":"11","wt":"10"}]}],"note":""},{"date":"2026-08-10T09:37:44.247Z","day":"mon","name":"Pull & Chest","color":"#C9A227","done":7,"total":7,"logs":[{"n":"Incline bench press","sets":[{"reps":"8","wt":"45"},{"reps":"10","wt":"65"},{"reps":"10","wt":"65"},{"reps":"6","wt":"65"}]},{"n":"Barbell bench press","sets":[{"reps":"10","wt":"45"},{"reps":"10","wt":"65"},{"reps":"8","wt":"75"}]},{"n":"Lat pullover","sets":[{"reps":"10","wt":"70"},{"reps":"8","wt":"80"}]},{"n":"Wide grip lat pulldown","sets":[{"reps":"10","wt":"70"},{"reps":"8","wt":"90"},{"reps":"8","wt":"95"}]},{"n":"Seated cable row","sets":[{"reps":"10","wt":"50"},{"reps":"6","wt":"50"},{"reps":"8","wt":"50"}]},{"n":"Machine lateral raise","sets":[{"reps":"10","wt":"20"},{"reps":"10","wt":"20"},{"reps":"10","wt":"20"}]},{"n":"Standing calf raise","sets":[{"reps":"10","wt":"100"},{"reps":"10","wt":"100"}]}],"note":""},{"date":"2026-08-08T09:36:20.950Z","day":"sat","name":"Legs","color":"#4A8F66","done":5,"total":5,"logs":[{"n":"Single leg press","sets":[{"reps":"8","wt":"50"},{"reps":"6","wt":"50"},{"reps":"6","wt":"50"}]},{"n":"Leg extensions","sets":[{"reps":"8","wt":"40"},{"reps":"8","wt":"40"},{"reps":"8","wt":"40"}]},{"n":"Seated leg curl","sets":[{"reps":"8","wt":"50"},{"reps":"8","wt":"50"},{"reps":"8","wt":"55"}]},{"n":"Back extensions","sets":[{"reps":"8","wt":"25"},{"reps":"8","wt":"25"},{"reps":"8","wt":"25"}]},{"n":"Standing calf raise","sets":[{"reps":"10","wt":"70"},{"reps":"10","wt":"70"}]}],"note":""},{"date":"2026-08-07T09:57:40.546Z","day":"fri","name":"Push & Pull","color":"#8A9BA0","done":1,"total":1,"logs":[{"n":"Machine lateral raise","sets":[{"reps":"10","wt":"10"},{"reps":"12","wt":"10"},{"reps":"12","wt":"10"}]}],"note":""},{"date":"2026-07-25T09:37:46.929Z","day":"sat","name":"Legs","color":"#4A8F66","done":3,"total":3,"logs":[{"n":"Single leg press","sets":[{"reps":"10","wt":"0"},{"reps":"10","wt":"0"},{"reps":"10","wt":"0"}]},{"n":"Leg extensions","sets":[{"reps":"12","wt":"60"},{"reps":"12","wt":"80"},{"reps":"10","wt":"80"}]},{"n":"Seated leg curl","sets":[{"reps":"10","wt":"60"},{"reps":"10","wt":"60"}]}],"note":""},{"date":"2026-07-24T09:41:59.331Z","day":"fri","name":"Push & Pull","color":"#8A9BA0","done":7,"total":7,"logs":[{"n":"Machine lateral raise","sets":[{"reps":"10","wt":"11"},{"reps":"9.5","wt":"11"},{"reps":"8","wt":"11"},{"reps":"8","wt":"11"}]},{"n":"Neutral grip lat pulldown","sets":[{"reps":"8","wt":"60"},{"reps":"7","wt":"60"},{"reps":"6","wt":"50"}]},{"n":"Neutral grip lat pulldown","sets":[{"reps":"8","wt":"90"},{"reps":"8","wt":"90"},{"reps":"10","wt":"80"}]},{"n":"Seated cable row","sets":[{"reps":"12","wt":"50"},{"reps":"10","wt":"75"}]},{"n":"Barbell bench press","sets":[{"reps":"12","wt":"55"},{"reps":"8","wt":"65"},{"reps":"10","wt":"75"}]},{"n":"Cable crossover","sets":[{"reps":"8","wt":"20"},{"reps":"12","wt":"10"}]},{"n":"Pec deck chest fly","sets":[{"reps":"10","wt":"90"},{"reps":"8","wt":"100"},{"reps":"12","wt":"100"}]}],"note":""},{"date":"2026-07-18T09:45:44.964Z","day":"sat","name":"Legs","color":"#4A8F66","done":5,"total":5,"logs":[{"n":"Single leg press","sets":[{"reps":"10","wt":"50"},{"reps":"10","wt":"50"},{"reps":"10","wt":"50"}]},{"n":"Seated leg curl","sets":[{"reps":"10","wt":"60"},{"reps":"10","wt":"60"}]},{"n":"Leg extensions","sets":[{"reps":"10","wt":"40"},{"reps":"10","wt":"40"},{"reps":"10","wt":"40"}]},{"n":"Back extensions","sets":[{"reps":"8","wt":"25"},{"reps":"8","wt":"25"}]},{"n":"Standing calf raise","sets":[{"reps":"10","wt":"80"},{"reps":"10","wt":"100"}]}],"note":""},{"date":"2026-07-17T09:48:11.595Z","day":"fri","name":"Push & Pull","color":"#8A9BA0","done":6,"total":6,"logs":[{"n":"Machine lateral raise","sets":[{"reps":"10","wt":"11"},{"reps":"10","wt":"11"},{"reps":"10","wt":"11"}]},{"n":"Neutral grip lat pulldown","sets":[{"reps":"10","wt":"70"},{"reps":"10","wt":"90"},{"reps":"10","wt":"90"}]},{"n":"Barbell bench press","sets":[{"reps":"10","wt":"65"},{"reps":"10","wt":"75"},{"reps":"10","wt":"75"}]},{"n":"Face pulls","sets":[{"reps":"10","wt":"60"},{"reps":"8","wt":"80"},{"reps":"10","wt":"70"}]},{"n":"Cable curl (straight bar)","sets":[{"reps":"10","wt":"40"},{"reps":"8","wt":"60"},{"reps":"10","wt":"40"}]},{"n":"Rope pushdown","sets":[{"reps":"10","wt":"60"}]}],"note":""},{"date":"2026-07-15T17:39:45.756Z","day":"wed","name":"Shoulders & Arms","color":"#4A8F66","done":6,"total":6,"logs":[{"n":"Chin-ups","sets":[{"reps":"6","wt":"110"},{"reps":"6","wt":"110"},{"reps":"6","wt":"110"}]},{"n":"Lateral raises","sets":[{"reps":"10","wt":"10"},{"reps":"15","wt":"10"},{"reps":"10","wt":"10"}]},{"n":"Rear delt dumbbell fly","sets":[{"reps":"10","wt":"10"}]},{"n":"Deficit push-ups","sets":[{"reps":"15","wt":"110"},{"reps":"20","wt":"110"}]},{"n":"Hammer curls","sets":[{"reps":"16","wt":"10"},{"reps":"11","wt":"10"}]},{"n":"Close grip push-ups","sets":[{"reps":"10","wt":"110"},{"reps":"10","wt":"110"}]}],"note":"Lean against dresser supporting with one hand I feel it better"},{"date":"2026-07-14T13:26:18.218Z","day":"tue","name":"Legs","color":"#4A8F66","done":2,"total":2,"logs":[{"n":"Goblet squat","sets":[{"reps":"15","wt":"20"},{"reps":"15","wt":"20"},{"reps":"12","wt":"20"}]},{"n":"Single leg calf raise","sets":[{"reps":"12","wt":"20"},{"reps":"12","wt":"20"},{"reps":"12","wt":"20"}]}],"note":""},{"date":"2026-07-11T09:51:51.456Z","day":"sat","name":"Legs","color":"#4A8F66","done":6,"total":6,"logs":[{"n":"Barbell bench press","sets":[{"reps":"8","wt":"75"},{"reps":"6","wt":"95"},{"reps":"5","wt":"115"},{"reps":"2","wt":"125"}]},{"n":"Incline bench press","sets":[{"reps":"8","wt":"75"},{"reps":"6.5","wt":"75"},{"reps":"8","wt":"65"},{"reps":"8","wt":"65"}]},{"n":"Decline bench press","sets":[{"reps":"10","wt":"65"},{"reps":"8","wt":"75"},{"reps":"8","wt":"75"}]},{"n":"Cable crossover","sets":[{"reps":"8","wt":"20"}]},{"n":"Landmine press","sets":[{"reps":"8","wt":"15"},{"reps":"8","wt":"15"},{"reps":"8","wt":"20"}]},{"n":"Overhead rope extension","sets":[{"reps":"10","wt":"60"}]}],"note":""},{"date":"2026-07-10T09:56:36.870Z","day":"fri","name":"Push & Pull","color":"#8A9BA0","done":5,"total":5,"logs":[{"n":"Romanian deadlift","sets":[{"reps":"10","wt":"25"},{"reps":"10","wt":"60"},{"reps":"8","wt":"60"},{"reps":"12","wt":"60"}]},{"n":"Hip thrust","sets":[{"reps":"12","wt":"70"},{"reps":"10","wt":"80"},{"reps":"8","wt":"80"}]},{"n":"Lying leg curl","sets":[{"reps":"8","wt":"50"},{"reps":"8","wt":"50"},{"reps":"8","wt":"50"},{"reps":"8","wt":"50"}]},{"n":"Single leg press","sets":[{"reps":"12","wt":"0"},{"reps":"12","wt":"20"},{"reps":"12","wt":"50"}]},{"n":"Standing calf raise","sets":[{"reps":"10","wt":"60"},{"reps":"8","wt":"80"},{"reps":"10","wt":"80"},{"reps":"8","wt":"80"}]}],"note":""},{"date":"2026-07-04T10:08:20.280Z","day":"sat","name":"Legs","color":"#4A8F66","done":5,"total":5,"logs":[{"n":"Incline bench press","sets":[{"reps":"8","wt":"65"},{"reps":"4","wt":"75"},{"reps":"4.5","wt":"75"},{"reps":"6","wt":"75"}]},{"n":"Barbell bench press","sets":[{"reps":"8","wt":"75"},{"reps":"5","wt":"95"},{"reps":"5","wt":"105"},{"reps":"1","wt":"120"}]},{"n":"Pec deck chest fly","sets":[{"reps":"10","wt":"55"},{"reps":"10","wt":"60"},{"reps":"10","wt":"65"}]},{"n":"Landmine press","sets":[{"reps":"6","wt":"22"},{"reps":"8","wt":"22"}]},{"n":"Incline dumbbell press","sets":[{"reps":"10","wt":"25"},{"reps":"8","wt":"25"},{"reps":"8","wt":"25"}]}],"note":""},{"date":"2026-06-05T10:01:33.350Z","day":"fri","name":"Push & Pull","color":"#8A9BA0","done":5,"total":5,"logs":[{"n":"Romanian deadlift","sets":[{"reps":"10","wt":"25"},{"reps":"10","wt":"25"},{"reps":"10","wt":"25"},{"reps":"10","wt":"25"}]},{"n":"Hip thrust","sets":[{"reps":"10","wt":"50"},{"reps":"8","wt":"70"},{"reps":"10","wt":"70"}]},{"n":"Lying leg curl","sets":[{"reps":"8","wt":"50"},{"reps":"8","wt":"60"},{"reps":"8","wt":"60"},{"reps":"8","wt":"50"}]},{"n":"Standing calf raise","sets":[{"reps":"10","wt":"20"},{"reps":"8","wt":"20"},{"reps":"8","wt":"20"}]},{"n":"Cable woodchopper","sets":[{"reps":"10","wt":"30"},{"reps":"8","wt":"20"},{"reps":"8","wt":"20"}]}],"note":""},{"date":"2026-05-29T10:03:37.298Z","day":"fri","name":"Push & Pull","color":"#8A9BA0","done":5,"total":5,"logs":[{"n":"Romanian deadlift","sets":[{"reps":"10","wt":"25"},{"reps":"10","wt":"25"},{"reps":"8","wt":"30"},{"reps":"8","wt":"30"}]},{"n":"Hip thrust","sets":[{"reps":"10","wt":"50"},{"reps":"8","wt":"70"},{"reps":"10","wt":"70"}]},{"n":"Lying leg curl","sets":[{"reps":"8","wt":"50"},{"reps":"10","wt":"50"},{"reps":"7","wt":"60"},{"reps":"8","wt":"60"}]},{"n":"Split squat lunges","sets":[{"reps":"10","wt":"15"},{"reps":"10","wt":"15"},{"reps":"10","wt":"15"}]},{"n":"Cable woodchopper","sets":[{"reps":"10","wt":"30"},{"reps":"8","wt":"20"},{"reps":"8","wt":"20"}]}],"note":""},{"date":"2026-05-25T10:02:24.646Z","day":"mon","name":"Pull & Chest","color":"#C9A227","done":5,"total":5,"logs":[{"n":"Barbell bench press","sets":[{"reps":"10","wt":"45"},{"reps":"7","wt":"95"},{"reps":"6","wt":"10"}]},{"n":"Incline dumbbell press","sets":[{"reps":"6","wt":"30"},{"reps":"6","wt":"30"},{"reps":"5","wt":"35"}]},{"n":"Cable overhead press","sets":[{"reps":"8","wt":"37.5"},{"reps":"8","wt":"37.5"},{"reps":"6","wt":"37.5"}]},{"n":"Rope pushdown","sets":[{"reps":"10","wt":"30"},{"reps":"10","wt":"40"},{"reps":"10","wt":"40"},{"reps":"10","wt":"40"}]},{"n":"Lateral raises","sets":[{"reps":"8","wt":"11"},{"reps":"8","wt":"11"},{"reps":"8","wt":"11"},{"reps":"8","wt":"11"}]}],"note":""},{"date":"2026-05-23T10:11:24.117Z","day":"sat","name":"Legs","color":"#4A8F66","done":6,"total":6,"logs":[{"n":"Neutral grip lat pulldown","sets":[{"reps":"8","wt":"50"},{"reps":"8","wt":"50"},{"reps":"8","wt":"50"}]},{"n":"Single arm dumbbell row","sets":[{"reps":"8","wt":"30"},{"reps":"8","wt":"35"},{"reps":"7.5","wt":"35"}]},{"n":"Chest supported row","sets":[{"reps":"8","wt":"45"},{"reps":"8","wt":"60"},{"reps":"8","wt":"75"}]},{"n":"Reverse pec deck","sets":[{"reps":"8","wt":"55"},{"reps":"8","wt":"50"},{"reps":"10","wt":"45"},{"reps":"10","wt":"50"}]},{"n":"Hammer curls","sets":[{"reps":"8","wt":"25"},{"reps":"8","wt":"25"},{"reps":"10","wt":"25"}]},{"n":"Cable curl (straight bar)","sets":[{"reps":"10","wt":"40"},{"reps":"10","wt":"50"},{"reps":"10","wt":"40"}]}],"note":""},{"date":"2026-05-22T10:00:47.451Z","day":"fri","name":"Push & Pull","color":"#8A9BA0","done":7,"total":7,"logs":[{"n":"Romanian deadlift","sets":[{"reps":"10","wt":"25"},{"reps":"12","wt":"25"},{"reps":"10","wt":"25"},{"reps":"8","wt":"30"}]},{"n":"Hip thrust","sets":[{"reps":"10","wt":"50"},{"reps":"10","wt":"60"},{"reps":"7.5","wt":"70"}]},{"n":"Lying leg curl","sets":[{"reps":"8","wt":"40"},{"reps":"7.5","wt":"50"},{"reps":"8","wt":"50"},{"reps":"10","wt":"30"}]},{"n":"Cable woodchopper","sets":[{"reps":"8","wt":"20"},{"reps":"8","wt":"20"},{"reps":"10","wt":"30"}]},{"n":"Hanging leg raise","sets":[{"reps":"10","wt":"110"},{"reps":"8","wt":"110"},{"reps":"8","wt":"110"}]},{"n":"Split squat lunges","sets":[{"reps":"10","wt":"15"},{"reps":"10","wt":"15"},{"reps":"10","wt":"15"}]},{"n":"Standing calf raise","sets":[{"reps":"10","wt":"20"},{"reps":"8","wt":"20"},{"reps":"8","wt":"20"}]}],"note":""},{"date":"2026-05-16T09:51:30.470Z","day":"sat","name":"Legs","color":"#4A8F66","done":7,"total":7,"logs":[{"n":"Push-ups","sets":[{"reps":"20","wt":"110"}]},{"n":"Neutral grip lat pulldown","sets":[{"reps":"8","wt":"70"},{"reps":"8","wt":"60"},{"reps":"8","wt":"70"}]},{"n":"Single arm dumbbell row","sets":[{"reps":"10","wt":"25"},{"reps":"10","wt":"30"},{"reps":"8","wt":"30"}]},{"n":"Chest supported row","sets":[{"reps":"8","wt":"35"},{"reps":"12","wt":"35"},{"reps":"11","wt":"35"}]},{"n":"Reverse pec deck","sets":[{"reps":"15","wt":"60"},{"reps":"10","wt":"60"},{"reps":"8","wt":"45"},{"reps":"8","wt":"45"}]},{"n":"Hammer curls","sets":[{"reps":"8","wt":"15"},{"reps":"8","wt":"15"},{"reps":"8","wt":"15"}]},{"n":"Cable curl (straight bar)","sets":[{"reps":"10","wt":"50"},{"reps":"10","wt":"50"},{"reps":"10","wt":"40"}]}],"note":""},{"date":"2026-05-15T09:57:58.591Z","day":"fri","name":"Push & Pull","color":"#8A9BA0","done":6,"total":6,"logs":[{"n":"Romanian deadlift","sets":[{"reps":"8","wt":"25"},{"reps":"8","wt":"25"},{"reps":"8","wt":"25"},{"reps":"8","wt":"25"}]},{"n":"Hip thrust","sets":[{"reps":"8","wt":"50"},{"reps":"10","wt":"50"},{"reps":"8","wt":"50"}]},{"n":"Lying leg curl","sets":[{"reps":"8","wt":"40"},{"reps":"10","wt":"40"},{"reps":"10","wt":"40"},{"reps":"10","wt":"40"}]},{"n":"Split squat lunges","sets":[{"reps":"10","wt":"15"},{"reps":"10","wt":"15"},{"reps":"10","wt":"15"}]},{"n":"Standing calf raise","sets":[{"reps":"8","wt":"70"},{"reps":"8","wt":"50"},{"reps":"8","wt":"50"}]},{"n":"Hanging leg raise","sets":[{"reps":"10","wt":"110"},{"reps":"10","wt":"110"},{"reps":"10","wt":"110"}]}],"note":""}],"lastLog":{"romanian-deadlift":{"sets":[{"reps":"10","wt":"25"},{"reps":"10","wt":"60"},{"reps":"8","wt":"60"},{"reps":"12","wt":"60"}]},"hip-thrust":{"sets":[{"reps":"12","wt":"70"},{"reps":"10","wt":"80"},{"reps":"8","wt":"80"}]},"lying-leg-curl":{"sets":[{"reps":"8","wt":"50"},{"reps":"8","wt":"50"},{"reps":"8","wt":"50"},{"reps":"8","wt":"50"}]},"split-squat-lunges":{"sets":[{"reps":"10","wt":"15"},{"reps":"10","wt":"15"},{"reps":"10","wt":"15"}]},"standing-calf-raise":{"sets":[{"reps":"10","wt":"100"},{"reps":"10","wt":"100"},{"reps":"12","wt":"0"}]},"hanging-leg-raise":{"sets":[{"reps":"10","wt":"110"},{"reps":"8","wt":"110"},{"reps":"8","wt":"110"}]},"push-ups":{"sets":[{"reps":"20","wt":"110"}]},"neutral-grip-lat-pulldown":{"sets":[{"reps":"8","wt":"90"},{"reps":"8","wt":"105"},{"reps":"8","wt":"110"}]},"single-arm-dumbbell-row":{"sets":[{"reps":"8","wt":"30"},{"reps":"8","wt":"30"}]},"chest-supported-row":{"sets":[{"reps":"10","wt":"62.5"},{"reps":"8","wt":"75"},{"reps":"8","wt":"75"}]},"reverse-pec-deck":{"sets":[{"reps":"10","wt":"50"},{"reps":"15","wt":"50"},{"reps":"10","wt":"50"}]},"hammer-curls":{"sets":[{"reps":"10","wt":"20"},{"reps":"11","wt":"10"}]},"cable-curl-straight-bar":{"sets":[{"reps":"8","wt":"100"},{"reps":"8","wt":"80"}]},"cable-woodchopper":{"sets":[{"reps":"10","wt":"30"},{"reps":"8","wt":"20"},{"reps":"8","wt":"20"}]},"barbell-bench-press":{"sets":[{"reps":"8","wt":"65"},{"reps":"8","wt":"75"},{"reps":"8","wt":"85"}]},"incline-dumbbell-press":{"sets":[{"reps":"8","wt":"20"},{"reps":"8","wt":"25"},{"reps":"8","wt":"25"}]},"cable-overhead-press":{"sets":[{"reps":"8","wt":"37.5"},{"reps":"8","wt":"37.5"},{"reps":"6","wt":"37.5"}]},"rope-pushdown":{"sets":[{"reps":"10","wt":"60"},{"reps":"8","wt":"65"}]},"lateral-raises":{"sets":[{"reps":"8","wt":"10"},{"reps":"8","wt":"10"},{"reps":"8","wt":"10"}]},"incline-bench-press":{"sets":[{"reps":"8","wt":"45"},{"reps":"8","wt":"65"},{"reps":"7","wt":"65"},{"reps":"6","wt":"65"}]},"pec-deck-chest-fly":{"sets":[{"reps":"8","wt":"90"},{"reps":"8","wt":"90"},{"reps":"8","wt":"90"}]},"landmine-press":{"sets":[{"reps":"8","wt":"15"},{"reps":"8","wt":"15"},{"reps":"8","wt":"20"}]},"single-leg-press":{"sets":[{"reps":"12","wt":"0"},{"reps":"12","wt":"20"}]},"decline-bench-press":{"sets":[{"reps":"10","wt":"65"},{"reps":"8","wt":"75"},{"reps":"8","wt":"75"}]},"cable-crossover":{"sets":[{"reps":"8","wt":"20"},{"reps":"12","wt":"10"}]},"overhead-rope-extension":{"sets":[{"reps":"10","wt":"50"},{"reps":"10","wt":"60"}]},"goblet-squat":{"sets":[{"reps":"15","wt":"20"},{"reps":"15","wt":"20"},{"reps":"12","wt":"20"}]},"single-leg-calf-raise":{"sets":[{"reps":"12","wt":"20"},{"reps":"12","wt":"20"},{"reps":"12","wt":"20"}]},"chin-ups":{"sets":[{"reps":"6","wt":"110"},{"reps":"6","wt":"110"},{"reps":"6","wt":"110"}]},"rear-delt-dumbbell-fly":{"sets":[{"reps":"10","wt":"10"}]},"deficit-push-ups":{"sets":[{"reps":"15","wt":"110"},{"reps":"20","wt":"110"}]},"close-grip-push-ups":{"sets":[{"reps":"10","wt":"110"},{"reps":"10","wt":"110"}]},"machine-lateral-raise":{"sets":[{"reps":"10","wt":"10"},{"reps":"10","wt":"20"},{"reps":"10","wt":"20"}]},"face-pulls":{"sets":[{"reps":"10","wt":"60"},{"reps":"10","wt":"65"},{"reps":"10","wt":"65"}]},"seated-leg-curl":{"sets":[{"reps":"10","wt":"50"},{"reps":"10","wt":"50"},{"reps":"8","wt":"50"}]},"leg-extensions":{"sets":[{"reps":"10","wt":"45"},{"reps":"10","wt":"45"},{"reps":"10","wt":"45"}]},"back-extensions":{"sets":[{"reps":"8","wt":"25"},{"reps":"8","wt":"30"}]},"seated-cable-row":{"sets":[{"reps":"10","wt":"50"},{"reps":"8","wt":"62.5"},{"reps":"8","wt":"62.5"}]},"lat-pullover":{"sets":[{"reps":"10","wt":"70"},{"reps":"10","wt":"80"}]},"wide-grip-lat-pulldown":{"sets":[{"reps":"10","wt":"50"},{"reps":"10","wt":"50"},{"reps":"8","wt":"62.5"},{"reps":"7","wt":"62.5"}]},"barbell-curl":{"sets":[{"reps":"10","wt":"20"}]},"leg-press":{"sets":[{"reps":"8","wt":"90"},{"reps":"8","wt":"140"},{"reps":"8","wt":"160"},{"reps":"8","wt":"170"}]},"smith-machine-shoulder-press":{"sets":[{"reps":"10","wt":"75"},{"reps":"8","wt":"95"},{"reps":"12","wt":"95"}]}},"plan":{"mon":{"tag":"Monday","name":"ALPHA","color":"#C9A227","focus":"Heavy day - low reps, big lifts","tip":"Heaviest session of the week. First five hit your whole body, so if you only get five in, you still trained everything. Rest 2 minutes on the big lifts.","ex":[{"id":"leg-press","n":"Leg press","g":"Legs","d":"3 x 8-10","note":"170 x 8 is your best. Full depth, no bouncing out of the bottom.","m":1,"w":1,"p":1},{"id":"barbell-bench-press","n":"Barbell bench press","g":"Chest","d":"3 x 5-8","note":"You have hit 125 for a double. Working sets live at 85-95 - earn three sets of 8 there first. Spotter when it gets heavy.","w":1,"p":1},{"id":"wide-grip-lat-pulldown","n":"Wide grip lat pulldown","g":"Back","d":"3 x 8-10","note":"105 x 8 is your PR but Oct 5 was 62. Check you are on the same stack.","m":1,"w":1,"p":1},{"id":"smith-machine-shoulder-press","n":"Smith machine shoulder press","g":"Shoulders","d":"3 x 8-10","note":"95 x 12 last time. Move up to 105.","m":1,"w":1,"p":1},{"id":"cable-curl-straight-bar","n":"Cable curl (straight bar)","g":"Biceps","d":"3 x 8-10","note":"100 lb. Elbows pinned - if your back swings, drop the weight.","w":1},{"id":"seated-leg-curl","n":"Seated leg curl","g":"Legs","d":"3 x 10-12","note":"50-60. Squeeze at the bottom, slow on the way back.","m":1,"w":1},{"id":"rope-pushdown","n":"Rope pushdown","g":"Triceps","d":"3 x 10-12","note":"65 lb. Elbows glued to your sides.","w":1},{"id":"standing-calf-raise","n":"Standing calf raise","g":"Legs","d":"3 x 12-15","note":"100 x 10 last time. Full stretch at the bottom.","w":1}]},"wed":{"tag":"Wednesday","name":"BRAVO","color":"#4A8F66","focus":"Volume day - nothing repeats Monday","tip":"Same muscles as Monday, different lifts, so nothing gets beat up. Two days of rest behind you - you should feel fresh.","ex":[{"id":"leg-extensions","n":"Leg extensions","g":"Legs","d":"3 x 10-12","note":"80 x 12 is your best, last time was 45. Build back to 80.","m":1,"w":1},{"id":"incline-bench-press","n":"Incline bench press","g":"Chest","d":"3 x 8-10","note":"65-75. Bench around 30 degrees.","w":1,"p":1},{"id":"chest-supported-row","n":"Chest supported row","g":"Back","d":"3 x 8-10","note":"100 x 8 is your PR, last time 75. Chest stays on the pad.","m":1,"w":1,"p":1},{"id":"machine-lateral-raise","n":"Machine lateral raise","g":"Shoulders","d":"3 x 12-15","note":"20 lb. Light and strict - no heaving.","m":1,"w":1},{"id":"hammer-curls","n":"Hammer curls","g":"Biceps","d":"3 x 10-12","note":"25 x 10 is your best. Thumbs up, no swing.","w":1},{"id":"romanian-deadlift","n":"Romanian deadlift","g":"Legs","d":"3 x 8-10","note":"60 lb back in July. Hips back, flat back, soft knees.","w":1,"p":1},{"id":"reverse-pec-deck","n":"Reverse pec deck","g":"Back","d":"3 x 12-15","note":"50-60. Rear delts - keeps your shoulders square.","m":1,"w":1},{"id":"hanging-leg-raise","n":"Hanging leg raise","g":"Core","d":"3 x 10-15","note":"Bodyweight. No swinging, control the way down."}]},"fri":{"tag":"Friday","name":"CHARLIE","color":"#8A9BA0","focus":"Pump day - lighter, higher reps","tip":"Back off the weight and chase reps. Cable curls come around again because that is what makes the numbers climb.","ex":[{"id":"single-leg-press","n":"Single leg press","g":"Legs","d":"3 x 10-12 per leg","note":"50 x 12 is your best. Evens out any side-to-side difference.","m":1,"w":1},{"id":"pec-deck-chest-fly","n":"Pec deck chest fly","g":"Chest","d":"3 x 10-12","note":"100 x 12 is your PR. Squeeze and hold a beat at the middle.","m":1,"w":1},{"id":"neutral-grip-lat-pulldown","n":"Neutral grip lat pulldown","g":"Back","d":"3 x 8-10","note":"110 x 8. Your strongest pull by a mile.","m":1,"w":1,"p":1},{"id":"face-pulls","n":"Face pulls","g":"Back","d":"3 x 15","note":"80 lb. Elbows high. This is the one that keeps your posture honest.","w":1},{"id":"cable-curl-straight-bar","n":"Cable curl (straight bar)","g":"Biceps","d":"3 x 12","note":"Lighter than Monday, around 70-80. Slow on the way down.","w":1},{"id":"hip-thrust","n":"Hip thrust","g":"Legs","d":"3 x 8-10","note":"80 x 10 back in July. Drive through your heels.","w":1},{"id":"overhead-rope-extension","n":"Overhead rope extension","g":"Triceps","d":"3 x 10-12","note":"60 lb. Hits the long head of the triceps.","w":1},{"id":"lat-pullover","n":"Lat pullover","g":"Back","d":"3 x 10-12","note":"80 x 10. Arms long, big arc.","m":1,"w":1}]}},"bw":[{"d":"2026-07-03","v":"110"}]};
+/* ---------- EXERCISE LIBRARY ---------- */
+var LIB=[
+  {n:"Barbell bench press",g:"Chest",d:"3 x 5-8",note:"Bar to mid-chest, elbows about 45 degrees. Always use a spotter when you go heavy.",w:1,p:1},
+  {n:"Incline bench press",g:"Chest",d:"3 x 8-10",note:"Bench around 30 degrees. Upper chest and front delt.",w:1,p:1},
+  {n:"Decline bench press",g:"Chest",d:"3 x 8-10",note:"Lower chest. Keep the bar path short and controlled.",w:1},
+  {n:"Incline dumbbell press",g:"Chest",d:"3 x 8-10",note:"Dumbbells let each side work on its own.",w:1},
+  {n:"Pec deck chest fly",g:"Chest",d:"3 x 10-12",note:"Squeeze and hold a beat at the middle.",m:1,w:1},
+  {n:"Cable crossover",g:"Chest",d:"3 x 12",note:"Step forward, bring the handles together low to high.",w:1},
+  {n:"Push-ups",g:"Chest",d:"3 x max",note:"Body in one straight line. Chest to the floor."},
+  {n:"Deficit push-ups",g:"Chest",d:"3 x max",note:"Hands raised so your chest drops below them. Bigger stretch."},
+  {n:"Close grip push-ups",g:"Chest",d:"3 x max",note:"Hands under your chest. Hits triceps hard."},
+  {n:"Wide grip lat pulldown",g:"Back",d:"3 x 8-10",note:"Wide grip, pull to your collarbone. Builds the V.",m:1,w:1,p:1},
+  {n:"Neutral grip lat pulldown",g:"Back",d:"3 x 8-10",note:"Palms facing each other. Usually your strongest pull.",m:1,w:1,p:1},
+  {n:"Chest supported row",g:"Back",d:"3 x 8-10",note:"Chest stays on the pad. Pull your elbows straight back.",m:1,w:1,p:1},
+  {n:"Seated cable row",g:"Back",d:"3 x 8-10",note:"Sit tall, pull to your belly button, no rocking.",m:1,w:1,p:1},
+  {n:"Single arm dumbbell row",g:"Back",d:"3 x 10 per side",note:"Flat back, drive your elbow to your hip.",w:1},
+  {n:"Lat pullover",g:"Back",d:"3 x 10-12",note:"Arms long, pull down in a big arc.",m:1,w:1},
+  {n:"Chin-ups",g:"Back",d:"3 x max",note:"Palms toward you. Chest to the bar if you can.",p:1},
+  {n:"Reverse pec deck",g:"Back",d:"3 x 12-15",note:"Rear delts and upper back. Keeps your shoulders square.",m:1,w:1},
+  {n:"Face pulls",g:"Back",d:"3 x 15",note:"Rope to your face, elbows high. The posture fixer.",w:1},
+  {n:"Rear delt dumbbell fly",g:"Back",d:"3 x 12-15",note:"Hinge forward, light weight, squeeze the back.",w:1},
+  {n:"Back extensions",g:"Back",d:"3 x 12",note:"Hinge at the hips. Don't crank your lower back.",w:1},
+  {n:"Smith machine shoulder press",g:"Shoulders",d:"3 x 8-10",note:"Fixed bar path. Press without shrugging.",m:1,w:1,p:1},
+  {n:"Cable overhead press",g:"Shoulders",d:"3 x 10",note:"Constant tension the whole way up.",w:1},
+  {n:"Landmine press",g:"Shoulders",d:"3 x 10 per side",note:"Bar in the corner, press up and across. Easy on the shoulders.",w:1},
+  {n:"Arnold press",g:"Shoulders",d:"3 x 10",note:"Rotate the palms as you press. Hits all three heads.",w:1},
+  {n:"Lateral raises",g:"Shoulders",d:"3 x 12-15",note:"Light and strict. Lead with the elbows.",w:1},
+  {n:"Machine lateral raise",g:"Shoulders",d:"3 x 12-15",note:"Same job as dumbbells, no cheating possible.",m:1,w:1},
+  {n:"Cable curl (straight bar)",g:"Biceps",d:"3 x 8-10",note:"Elbows pinned. Constant tension beats heavy swinging.",w:1},
+  {n:"Hammer curls",g:"Biceps",d:"3 x 10-12",note:"Thumbs up. Builds the outer arm and forearm.",w:1},
+  {n:"Barbell curl",g:"Biceps",d:"3 x 8-10",note:"No swinging. If your back moves, drop the weight.",w:1},
+  {n:"Preacher curl",g:"Biceps",d:"3 x 10-12",note:"Arms locked on the pad. Full stretch at the bottom.",m:1,w:1},
+  {n:"Rope pushdown",g:"Triceps",d:"3 x 10-12",note:"Elbows pinned to your sides, spread the rope at the bottom.",w:1},
+  {n:"Overhead rope extension",g:"Triceps",d:"3 x 10-12",note:"Hits the long head. Keep your elbows close to your head.",w:1},
+  {n:"Skull crushers",g:"Triceps",d:"3 x 10",note:"Lower to your forehead, elbows pointed at the ceiling.",w:1},
+  {n:"Leg press",g:"Legs",d:"3 x 8-10",note:"Feet shoulder width. Full depth, don't bounce out of the bottom.",m:1,w:1,p:1},
+  {n:"Single leg press",g:"Legs",d:"3 x 10-12 per leg",note:"Evens out any side-to-side difference.",m:1,w:1},
+  {n:"Leg extensions",g:"Legs",d:"3 x 10-12",note:"Squeeze hard at the top for a second.",m:1,w:1},
+  {n:"Seated leg curl",g:"Legs",d:"3 x 10-12",note:"Squeeze at the bottom, slow on the way back.",m:1,w:1},
+  {n:"Lying leg curl",g:"Legs",d:"3 x 10-12",note:"Hips flat on the pad the whole set.",m:1,w:1},
+  {n:"Romanian deadlift",g:"Legs",d:"3 x 8-10",note:"Hips back, flat back, soft knees. Feel the hamstrings stretch.",w:1,p:1},
+  {n:"Barbell squat",g:"Legs",d:"3 x 5-8",note:"Chest up, knees tracking over your toes. Go light until the form is automatic.",w:1,p:1},
+  {n:"Goblet squat",g:"Legs",d:"3 x 12",note:"One dumbbell at your chest. Great for learning squat depth.",w:1},
+  {n:"Hip thrust",g:"Legs",d:"3 x 8-10",note:"Drive through your heels, squeeze hard at the top.",w:1},
+  {n:"Split squat lunges",g:"Legs",d:"3 x 10 per leg",note:"Back knee toward the floor, front shin vertical.",w:1},
+  {n:"Standing calf raise",g:"Legs",d:"3 x 12-15",note:"Full stretch at the bottom, all the way up.",w:1},
+  {n:"Single leg calf raise",g:"Legs",d:"3 x 12 per leg",note:"Bodyweight is plenty. Slow at the bottom.",w:1},
+  {n:"Adductor machine",g:"Legs",d:"3 x 12",note:"Knees squeeze in together.",m:1,w:1},
+  {n:"Hanging leg raise",g:"Core",d:"3 x 10-15",note:"No swinging. Control the way down."},
+  {n:"Cable woodchopper",g:"Core",d:"3 x 10 per side",note:"Rotate through your trunk, not your arms.",w:1},
+  {n:"Cable crunch",g:"Core",d:"3 x 15",note:"Rope behind your head, crunch down with your abs not your hips.",w:1},
+  {n:"Plank",g:"Core",d:"3 x 45 sec",note:"Straight line head to heels. Squeeze everything."}
+];
+/* ---------- KEYS ---------- */
+var K_PLAN='wl-plan-v1', K_HIST='wl-hist-v1', K_LOG='wl-log-v1', K_REST='wl-rest-v1';
+var K_BW='wl-bw-v1', K_ACT='wl-act-v1', K_SEEDV='wl-seedv', K_PLANV='wl-planv';
+
+/* ---------- SMALL HELPERS ---------- */
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function readJSON(k,dflt){ try{ var s=localStorage.getItem(k); if(s) return JSON.parse(s); }catch(e){} return dflt; }
+function writeJSON(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function num(v){ var n=parseFloat(v); return isNaN(n)?0:n; }
+function trim1(n){ return (Math.round(n*10)/10).toString(); }
+function slug(s){ return String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+
+/* some exercises were renamed over time - keep their history together */
+var ALIAS={};
+function exId(name){ var s=slug(name); return ALIAS[s]||s; }
+
+function makeDefault(){ return clone(SEED.plan); }
+
+/* ---------- SEED / UPDATE MERGE ----------
+   Runs when this browser has never seen this build's seed data.
+   History and weigh-ins are UNIONED, never overwritten, so opening a
+   newly published copy of the app can't delete anything already logged. */
+function seedInit(){
+  var applied=null, planApplied=null;
+  try{ applied=localStorage.getItem(K_SEEDV); planApplied=localStorage.getItem(K_PLANV); }catch(e){}
+  var freshData=(applied!==SEED_VERSION);
+  var freshPlan=(planApplied!==PLAN_VERSION)||!readJSON(K_PLAN,null);
+  if(!freshData&&!freshPlan) return;
+
+  if(freshData){
+    var cur=readJSON(K_HIST,null);
+    var merged=mergeHist(cur||[],SEED.history||[]);
+    writeJSON(K_HIST,merged);
+    var bw=mergeBW(readJSON(K_BW,[])||[],SEED.bw||[]);
+    writeJSON(K_BW,bw);
+    writeJSON(K_LOG,rebuildLastLog(merged,readJSON(K_LOG,null)||SEED.lastLog));
+    try{ localStorage.setItem(K_SEEDV,SEED_VERSION); }catch(e){}
+  }
+
+  /* a routine change has to reach her phone - this replaces the day layouts
+     only, never history, weights or weigh-ins */
+  if(freshPlan){
+    writeJSON(K_PLAN,clone(SEED.plan));
+    try{ localStorage.removeItem(K_ACT); }catch(e){}
+    try{ localStorage.setItem(K_PLANV,PLAN_VERSION); }catch(e){}
+  }
+}
+
+function mergeHist(a,b){
+  var seen={}, out=[];
+  a.concat(b).forEach(function(w){
+    if(!w||!w.date||seen[w.date]) return;
+    seen[w.date]=1; out.push(w);
+  });
+  out.sort(function(x,y){ return x.date<y.date?1:(x.date>y.date?-1:0); });
+  return out;
+}
+function mergeBW(a,b){
+  var seen={}, out=[];
+  a.concat(b).forEach(function(e){
+    if(!e||!e.d||seen[e.d]) return;
+    seen[e.d]=1; out.push(e);
+  });
+  out.sort(function(x,y){ return x.d<y.d?1:(x.d>y.d?-1:0); });
+  return out;
+}
+/* history is the source of truth for "last time" - newest entry wins */
+function rebuildLastLog(h,base){
+  var out=base?clone(base):{};
+  for(var i=h.length-1;i>=0;i--){
+    var lg=h[i].logs||[];
+    for(var j=0;j<lg.length;j++){
+      if(lg[j].sets&&lg[j].sets.length) out[exId(lg[j].n)]={sets:lg[j].sets};
+    }
+  }
+  return out;
+}
+
+/* ---------- STATE ---------- */
+seedInit();
+var plan=readJSON(K_PLAN,null)||makeDefault();
+var hist=readJSON(K_HIST,null)||clone(SEED.history);
+var lastLog=readJSON(K_LOG,null)||clone(SEED.lastLog);
+var bwLog=readJSON(K_BW,[])||[];
+var restLen=loadRest();
+var bests=computeBests();
+var day=null, done={}, sess={}, note='', pend=null, restT=null, restEnd=0;
+var libFilter='All', editMode=false, rows={}, pSel=null;
+
+function savePlan(){ writeJSON(K_PLAN,plan); }
+function saveHist(){ writeJSON(K_HIST,hist); bests=computeBests(); }
+function saveLog(){ writeJSON(K_LOG,lastLog); }
+function saveBW(){ writeJSON(K_BW,bwLog); }
+function loadRest(){ try{ var s=localStorage.getItem(K_REST); if(s) return parseInt(s,10); }catch(e){} return 60; }
+function saveRest(){ try{ localStorage.setItem(K_REST,String(restLen)); }catch(e){} }
+
+/* ---------- PERSONAL BESTS ---------- */
+function computeBests(){
+  var b={};
+  hist.forEach(function(w){
+    (w.logs||[]).forEach(function(l){
+      var id=exId(l.n);
+      (l.sets||[]).forEach(function(s){
+        var wt=num(s.wt), r=num(s.reps);
+        if(!wt||!r) return;
+        if(!b[id]||wt>b[id].wt||(wt===b[id].wt&&r>b[id].reps)) b[id]={wt:wt,reps:r,date:w.date};
+      });
+    });
+  });
+  return b;
+}
+function oneRM(wt,reps){ if(!wt||!reps) return 0; return Math.round(wt*(1+reps/30)); }
+
+/* ---------- NAV ---------- */
+function go(v){
+  var els=document.querySelectorAll('.view');
+  for(var i=0;i<els.length;i++) els[i].classList.remove('active');
+  document.getElementById(v+'-view').classList.add('active');
+  if(v==='home'){ stopRest(); renderHome(); }
+  if(v==='history') renderHist();
+  if(v==='lib') renderLib();
+  if(v==='progress') renderProg();
+  if(v==='bw') renderBW();
+  window.scrollTo(0,0);
+}
+
+/* ---------- HOME ---------- */
+function renderHome(){
+  var todayK=['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
+  var c=document.getElementById('days'); c.innerHTML='';
+  ['mon','wed','fri'].forEach(function(k){
+    var d=plan[k]; if(!d) return;
+    var last=null;
+    for(var i=0;i<hist.length;i++){ if(hist[i].day===k){ last=hist[i]; break; } }
+    var meta=last?('Last: '+fdate(last.date)):'Not started yet';
+    var b=document.createElement('button');
+    b.className='day-card'+(k===todayK?' today':'');
+    b.innerHTML='<div class="day-bar" style="background:'+d.color+'"></div>'+
+      '<div class="day-b"><div class="day-tag" style="color:'+d.color+'">'+esc(d.tag)+(k===todayK?'<span class="today-pill">Today</span>':'')+'</div>'+
+      '<div class="day-name">'+esc(d.name)+'</div>'+
+      '<div class="day-meta">'+esc(d.focus)+'</div>'+
+      '<div class="day-meta" style="margin-top:3px;color:var(--text-faint)">'+d.ex.length+' exercises &middot; '+meta+'</div></div>'+
+      '<div class="day-arrow">&#8594;</div>';
+    b.onclick=function(){ start(k); };
+    c.appendChild(b);
+  });
+
+  document.getElementById('s-tot').textContent=hist.length;
+  document.getElementById('hcount').textContent=hist.length;
+  var ws=new Date(); ws.setDate(ws.getDate()-ws.getDay()); ws.setHours(0,0,0,0);
+  var wk=0, vol=0;
+  for(var i=0;i<hist.length;i++){
+    if(new Date(hist[i].date)>=ws) wk++;
+    vol+=volOf(hist[i]);
+  }
+  document.getElementById('s-week').textContent=wk;
+  document.getElementById('s-vol').textContent=fvol(vol);
+  renderResume();
+}
+
+function volOf(w){
+  var v=0, lg=w.logs||[];
+  for(var j=0;j<lg.length;j++){
+    var st=lg[j].sets||[];
+    for(var q=0;q<st.length;q++) v+=num(st[q].reps)*num(st[q].wt);
+  }
+  return v;
+}
+function fvol(v){ return v>=1000?(Math.round(v/100)/10)+'k':String(Math.round(v)); }
+
+/* ---------- RESUME AN UNFINISHED SESSION ---------- */
+function renderResume(){
+  var a=readJSON(K_ACT,null), box=document.getElementById('resume');
+  if(!a||!a.day||!plan[a.day]){ box.classList.remove('on'); return; }
+  var age=(new Date()-new Date(a.at))/36e5;
+  if(!(age>=0&&age<24)){ box.classList.remove('on'); return; }
+  var n=0; for(var k in (a.done||{})) if(a.done[k]) n++;
+  document.getElementById('resume-t').textContent=plan[a.day].name+' is still open';
+  document.getElementById('resume-d').textContent=n+' exercise'+(n===1?'':'s')+' checked off, started '+ftime(a.at)+'. Nothing is saved to history until you finish.';
+  box.classList.add('on');
+}
+function resumeGo(){
+  var a=readJSON(K_ACT,null); if(!a) return;
+  day=a.day; done=a.done||{}; sess=a.sess||{}; note=a.note||'';
+  paintHead(); renderEx(); go('workout');
+}
+function resumeDrop(){
+  if(!confirm('Throw away that unfinished workout?')) return;
+  clearActive(); renderHome();
+}
+function saveActive(){
+  if(!day) return;
+  var el=document.getElementById('w-note');
+  note=el?el.value:note;
+  var any=false;
+  for(var k in done){ if(done[k]) any=true; }
+  for(var k2 in sess){ any=true; }
+  if(!any&&!(note||'').trim()){ clearActive(); return; }
+  writeJSON(K_ACT,{day:day,done:done,sess:sess,note:note,at:new Date().toISOString()});
+}
+function clearActive(){ try{ localStorage.removeItem(K_ACT); }catch(e){} }
+
+/* ---------- WORKOUT ---------- */
+function start(k){
+  var a=readJSON(K_ACT,null);
+  var fresh=a&&a.day&&(new Date()-new Date(a.at))/36e5<24;
+  if(fresh&&a.day===k){ resumeGo(); return; }
+  if(fresh&&plan[a.day]&&!confirm('Your '+plan[a.day].name+' workout is still open and has not been saved. Start '+plan[k].name+' anyway?')) return;
+  day=k; done={}; sess={}; note=''; rows={}; editMode=false;
+  paintHead(); renderEx(); clearActive(); go('workout');
+}
+function paintHead(){
+  var d=plan[day];
+  document.getElementById('w-tag').textContent=d.tag;
+  document.getElementById('w-tag').style.color=d.color;
+  document.getElementById('w-title').textContent=d.name;
+  document.getElementById('w-fill').style.background=d.color;
+  document.getElementById('w-note').value=note||'';
+  document.getElementById('w-tip').innerHTML='<div class="note-card" style="margin:0"><b>Today:</b> '+esc(d.tip)+'</div>';
+  document.getElementById('edit-btn').classList.remove('on');
+  document.getElementById('edit-btn').textContent='Edit';
+}
+function leaveWorkout(){ saveActive(); go('home'); }
+function tgEdit(){
+  editMode=!editMode;
+  var b=document.getElementById('edit-btn');
+  b.classList.toggle('on',editMode);
+  b.textContent=editMode?'Done':'Edit';
+  renderEx();
+}
+
+/* pull the top of the target rep range out of a string like "3 x 10-12" */
+function topReps(d){
+  if(!d||/sec|min/i.test(d)) return 0;
+  var m=/(\d+)\s*x\s*(\d+)(?:\s*-\s*(\d+))?/i.exec(d);
+  if(!m) return 0;
+  return parseInt(m[3]||m[2],10)||0;
+}
+function readyToAdd(ex){
+  var top=topReps(ex.d); if(!top||!ex.w) return false;
+  var p=lastLog[ex.id]; if(!p||!p.sets||p.sets.length<2) return false;
+  for(var i=0;i<p.sets.length;i++){
+    if(!num(p.sets[i].wt)) return false;
+    if(num(p.sets[i].reps)<top) return false;
+  }
+  return true;
+}
+
+function renderEx(){
+  var d=plan[day], L=document.getElementById('exlist'); L.innerHTML='';
+  d.ex.forEach(function(ex,idx){
+    var isDone=!!done[ex.id], s=sess[ex.id], prev=lastLog[ex.id], pb=bests[ex.id];
+    var card=document.createElement('div');
+    card.className='ex'+(isDone?' done':'')+(editMode?' editing':'');
+
+    var badges='';
+    if(ex.m) badges+='<span class="badge b-machine">Machine</span>';
+    if(ex.p) badges+='<span class="badge b-key">Key lift</span>';
+    if(ex.g==='Core') badges+='<span class="badge b-core">Core</span>';
+    if(s&&s.pr) badges+='<span class="badge b-pr">New PR</span>';
+
+    var line='';
+    if(s&&s.sets&&s.sets.length){
+      line='<div class="logged">Logged: '+fsets(s.sets)+'</div>';
+    } else if(prev&&prev.sets&&prev.sets.length&&!isDone){
+      line='<div class="logged prev">Last time: '+fsets(prev.sets)+'</div>';
+    }
+
+    var nudge='';
+    if(!isDone&&readyToAdd(ex)) nudge='<div class="nudge">You hit the top of the range last time. Go up a notch.</div>';
+
+    var bestLine='';
+    if(pb&&pb.wt) bestLine='<div class="best-l">Best: '+trim1(pb.wt)+' lb x '+pb.reps+' &middot; est. 1 rep max '+oneRM(pb.wt,pb.reps)+' lb</div>';
+
+    var setsHtml='';
+    if(ex.w){
+      var src=(s&&s.sets)||(prev&&prev.sets)||[];
+      var n=rows[ex.id]||Math.max(3,src.length);
+      rows[ex.id]=n;
+      var r='';
+      for(var i=0;i<n;i++){
+        var pr=src[i]||{};
+        r+='<div class="set-row"><span class="set-n">Set '+(i+1)+'</span>'+
+          '<input class="inp" type="number" inputmode="numeric" placeholder="reps" id="r-'+ex.id+'-'+i+'" value="'+esc(pr.reps||'')+'">'+
+          '<span class="unit">reps</span>'+
+          '<input class="inp" type="number" inputmode="decimal" placeholder="lbs" id="w-'+ex.id+'-'+i+'" value="'+esc(pr.wt||'')+'">'+
+          '<span class="unit">lb</span></div>';
+      }
+      setsHtml='<div class="sets" id="sets-'+ex.id+'">'+r+
+        '<button class="addset" onclick="addRow(\''+ex.id+'\')">+ Add a set</button>'+
+        '<button class="save" onclick="saveSets(\''+ex.id+'\')">Save sets</button></div>';
+    }
+
+    card.innerHTML=
+      '<div class="ex-top">'+
+        '<button class="chk" onclick="tog(\''+ex.id+'\')" style="background:'+(isDone?d.color:'transparent')+';border-color:'+(isDone?d.color:'var(--border-2)')+'">'+(isDone?'&#10003;':'')+'</button>'+
+        '<div class="ex-i"><div class="ex-n">'+esc(ex.n)+'</div><div class="ex-d">'+esc(ex.d)+'</div>'+
+        (ex.note?'<div class="ex-note">'+esc(ex.note)+'</div>':'')+
+        (badges?'<div class="ex-badges">'+badges+'</div>':'')+'</div>'+
+        '<div class="ex-move"><button onclick="move('+idx+',-1)">&#9650;</button><button onclick="move('+idx+',1)">&#9660;</button></div>'+
+        (editMode?'<button class="ex-x" onclick="rmEx('+idx+')">&#10005;</button>':'')+
+      '</div>'+ line + nudge + bestLine +
+      '<div class="ex-row">'+
+        (ex.w?'<button class="mini" onclick="tgSets(\''+ex.id+'\')">Log sets</button>':'')+
+        '<button class="mini" onclick="startRest()">Rest '+restLen+'s</button>'+
+      '</div>'+ setsHtml;
+    L.appendChild(card);
+  });
+  prog();
+}
+function fsets(a){
+  return a.map(function(x){ return x.wt?(x.reps+' x '+trim1(num(x.wt))+' lb'):(x.reps+' reps'); }).join('  |  ');
+}
+
+function addRow(id){
+  rows[id]=(rows[id]||3)+1;
+  var open=document.getElementById('sets-'+id);
+  var was=open&&open.classList.contains('open');
+  renderEx();
+  if(was){ var p=document.getElementById('sets-'+id); if(p) p.classList.add('open'); }
+}
+function tog(id){ done[id]=!done[id]; if(done[id]) startRest(); saveActive(); renderEx(); }
+function tgSets(id){
+  var p=document.getElementById('sets-'+id); if(!p) return;
+  var was=p.classList.contains('open');
+  var all=document.querySelectorAll('.sets.open');
+  for(var i=0;i<all.length;i++) all[i].classList.remove('open');
+  if(!was) p.classList.add('open');
+}
+function saveSets(id){
+  var arr=[], n=rows[id]||3;
+  for(var i=0;i<n;i++){
+    var re=document.getElementById('r-'+id+'-'+i), we=document.getElementById('w-'+id+'-'+i);
+    if(!re) continue;
+    if(re.value) arr.push({reps:re.value,wt:(we&&we.value)||''});
+  }
+  if(!arr.length){ alert('Put some reps in first.'); return; }
+
+  var top=0, topR=0;
+  arr.forEach(function(s){ var w=num(s.wt), r=num(s.reps); if(w>top||(w===top&&r>topR)){ top=w; topR=r; } });
+  var pb=bests[id], isPR=false, msg='';
+  if(top>0&&topR>0){
+    if(!pb){ isPR=true; msg='First time on the board at '+trim1(top)+' lb. Now there is a number to beat.'; }
+    else if(top>pb.wt){ isPR=true; msg=trim1(top)+' lb beats your old best of '+trim1(pb.wt)+' lb. That is real progress.'; }
+    else if(top===pb.wt&&topR>pb.reps){ isPR=true; msg=topR+' reps at '+trim1(top)+' lb, up from '+pb.reps+'. Strength going up.'; }
+  }
+
+  sess[id]={sets:arr,pr:isPR};
+  lastLog[id]={sets:arr}; saveLog();
+  done[id]=true; saveActive(); startRest(); renderEx();
+  if(isPR) toast('New personal best',msg);
+}
+
+function move(idx,dir){
+  var a=plan[day].ex, j=idx+dir;
+  if(j<0||j>=a.length) return;
+  var t=a[idx]; a[idx]=a[j]; a[j]=t;
+  savePlan(); renderEx();
+}
+function rmEx(idx){
+  if(!confirm('Remove '+plan[day].ex[idx].n+' from this day?')) return;
+  plan[day].ex.splice(idx,1); savePlan(); renderEx();
+}
+
+function prog(){
+  var d=plan[day], t=d.ex.length, c=0, vol=0;
+  d.ex.forEach(function(e){ if(done[e.id]) c++; });
+  for(var id in sess){
+    var st=sess[id].sets||[];
+    for(var i=0;i<st.length;i++) vol+=num(st[i].reps)*num(st[i].wt);
+  }
+  document.getElementById('w-fill').style.width=(t?c/t*100:0)+'%';
+  document.getElementById('w-lab').textContent=c+' of '+t+' done';
+  document.getElementById('w-vol').textContent=vol?fvol(vol)+' lbs':'';
+}
+
+function finish(){
+  var d=plan[day], t=d.ex.length, c=0;
+  d.ex.forEach(function(e){ if(done[e.id]) c++; });
+  if(c===0){ if(!confirm('Nothing is checked off yet. Finish anyway?')) return; }
+  else if(c<=2&&t>=5){ if(!confirm('Only '+c+' of '+t+' are checked off. Save it as a workout?')) return; }
+  var logs=[];
+  d.ex.forEach(function(e){ if(sess[e.id]) logs.push({n:e.n,sets:sess[e.id].sets}); });
+  var el=document.getElementById('w-note');
+  var nt=(el&&el.value||'').trim();
+  hist.unshift({date:new Date().toISOString(),day:day,name:d.name,color:d.color,done:c,total:t,logs:logs,note:nt});
+  saveHist(); clearActive(); stopRest();
+  day=null; done={}; sess={}; note='';
+  go('home');
+}
+
+/* ---------- REST TIMER (clock based, survives screen lock) ---------- */
+function startRest(){
+  stopRest();
+  restEnd=Date.now()+restLen*1000;
+  document.getElementById('rest').classList.add('on'); paintRest();
+  restT=setInterval(function(){
+    paintRest();
+    if(Date.now()>=restEnd){ stopRest(); if(navigator.vibrate) navigator.vibrate([200,80,200]); }
+  },250);
+}
+function paintRest(){
+  var left=Math.max(0,Math.round((restEnd-Date.now())/1000));
+  var m=Math.floor(left/60), s=left%60;
+  document.getElementById('rest-t').textContent=m+':'+(s<10?'0':'')+s;
+}
+function stopRest(){
+  if(restT){ clearInterval(restT); restT=null; }
+  document.getElementById('rest').classList.remove('on');
+}
+
+/* ---------- TOAST ---------- */
+var toastT=null;
+function toast(t,d){
+  document.getElementById('toast-t').textContent=t;
+  document.getElementById('toast-d').textContent=d;
+  var el=document.getElementById('toast');
+  el.classList.add('on');
+  if(navigator.vibrate) navigator.vibrate([60,50,60]);
+  if(toastT) clearTimeout(toastT);
+  toastT=setTimeout(function(){ el.classList.remove('on'); },4200);
+}
+
+/* ---------- LIBRARY ---------- */
+function openLib(){ libFilter='All'; document.getElementById('lib-q').value=''; go('lib'); }
+function renderLib(){
+  if(!day) day='mon';
+  var groups=['All','Chest','Back','Shoulders','Biceps','Triceps','Legs','Core','Cardio'];
+  var ch=document.getElementById('chips'); ch.innerHTML='';
+  groups.forEach(function(g){
+    var b=document.createElement('button');
+    b.className='chip'+(libFilter===g?' on':'');
+    b.textContent=g;
+    b.onclick=function(){ libFilter=g; renderLib(); };
+    ch.appendChild(b);
+  });
+
+  var q=(document.getElementById('lib-q').value||'').toLowerCase();
+  var cur={}; plan[day].ex.forEach(function(e){ cur[e.id]=1; });
+  var out=document.getElementById('lib-list'); out.innerHTML='';
+
+  var order=['Chest','Back','Shoulders','Biceps','Triceps','Legs','Core','Cardio'];
+  var any=false;
+  order.forEach(function(g){
+    if(libFilter!=='All'&&libFilter!==g) return;
+    var items=LIB.filter(function(x){
+      if(x.g!==g) return false;
+      if(q && x.n.toLowerCase().indexOf(q)<0 && (x.note||'').toLowerCase().indexOf(q)<0) return false;
+      return true;
+    });
+    if(!items.length) return;
+    any=true;
+    var h=document.createElement('div'); h.className='lib-group'; h.textContent=g; out.appendChild(h);
+    var wrap=document.createElement('div'); wrap.className='lib-list';
+    items.forEach(function(x){
+      var already=cur[slug(x.n)];
+      var b=document.createElement('button'); b.className='lib-item';
+      var bg='';
+      if(x.m) bg+='<span class="badge b-machine">Machine</span> ';
+      if(x.p) bg+='<span class="badge b-key">Key lift</span>';
+      b.innerHTML='<div class="lib-i"><div class="lib-n">'+esc(x.n)+'</div><div class="lib-d">'+esc(x.d)+(x.note?' &middot; '+esc(x.note):'')+'</div>'+
+        (bg?'<div class="ex-badges">'+bg+'</div>':'')+'</div>'+
+        '<div class="lib-plus" style="color:'+(already?'var(--text-faint)':'var(--turquoise)')+'">'+(already?'&#10003;':'+')+'</div>';
+      b.onclick=function(){ addEx(x); };
+      wrap.appendChild(b);
+    });
+    out.appendChild(wrap);
+  });
+  if(!any) out.innerHTML='<div class="empty"><b>Nothing found</b>Try a different word or pick another category.</div>';
+}
+function addEx(x){
+  var id=slug(x.n), exists=false;
+  plan[day].ex.forEach(function(e){ if(e.id===id) exists=true; });
+  if(exists){ alert(x.n+' is already on this day.'); return; }
+  plan[day].ex.push({id:id,n:x.n,g:x.g,d:x.d,note:x.note,m:x.m,w:x.w,p:x.p});
+  savePlan(); go('workout'); renderEx();
+}
+
+/* ---------- PROGRESS ---------- */
+function exSeries(){
+  var map={};
+  for(var i=hist.length-1;i>=0;i--){
+    var w=hist[i], lg=w.logs||[];
+    for(var j=0;j<lg.length;j++){
+      var id=exId(lg[j].n), top=0, topR=0;
+      (lg[j].sets||[]).forEach(function(s){
+        var wt=num(s.wt), r=num(s.reps);
+        if(wt>top||(wt===top&&r>topR)){ top=wt; topR=r; }
+      });
+      if(!top) continue;
+      if(!map[id]) map[id]={id:id,n:lg[j].n,pts:[]};
+      map[id].n=lg[j].n;
+      map[id].pts.push({v:top,r:topR,d:w.date});
+    }
+  }
+  /* a lift that was renamed should show its CURRENT name, not the one
+     it happened to be logged under years of sessions ago */
+  ['mon','wed','fri'].forEach(function(d){
+    if(!plan[d]) return;
+    plan[d].ex.forEach(function(e){ if(map[e.id]) map[e.id].n=e.n; });
+  });
+  var arr=[];
+  for(var k in map) arr.push(map[k]);
+  arr.sort(function(a,b){ return b.pts.length-a.pts.length; });
+  return arr;
+}
+
+function renderProg(){
+  var series=exSeries();
+  var totVol=0; hist.forEach(function(w){ totVol+=volOf(w); });
+  document.getElementById('p-stats').innerHTML=
+    stat(hist.length,'Sessions')+stat(series.length,'Exercises tracked')+stat(fvol(totVol),'Total lbs');
+
+  if(!series.length){
+    document.getElementById('p-chart').innerHTML='<div class="empty"><b>Not yet</b>Log a few sets and the chart shows up here.</div>';
+    document.getElementById('p-list').innerHTML='';
+    return;
+  }
+  if(!pSel||!series.some(function(s){ return s.id===pSel; })) pSel=series[0].id;
+
+  var sel=null;
+  series.forEach(function(s){ if(s.id===pSel) sel=s; });
+  var pts=sel.pts.map(function(p){ return {v:p.v,l:fshort(p.d)}; });
+  document.getElementById('p-chart').innerHTML=
+    '<div class="chartwrap"><div class="chart-t">'+esc(sel.n)+' &middot; top set</div><div class="chart">'+
+    lineSVG(pts,'#C9A227','lb')+'</div></div>';
+
+  var L=document.getElementById('p-list'); L.innerHTML='';
+  series.forEach(function(s){
+    var first=s.pts[0].v, last=s.pts[s.pts.length-1].v, diff=last-first;
+    var cls=diff>0?'t-up':(diff<0?'t-dn':'t-flat');
+    var arrow=diff>0?'&#9650;':(diff<0?'&#9660;':'&#8212;');
+    var txt=diff===0?'even':(diff>0?'+':'')+trim1(diff)+' lb';
+    var b=document.createElement('button');
+    b.className='prow'+(s.id===pSel?' on':'');
+    b.innerHTML='<div class="prow-i"><div class="prow-n">'+esc(s.n)+'</div>'+
+      '<div class="prow-d">'+s.pts.length+' session'+(s.pts.length===1?'':'s')+' &middot; <span class="trend '+cls+'">'+arrow+' '+txt+'</span></div></div>'+
+      '<div class="prow-v">'+trim1(last)+'</div>';
+    b.onclick=function(){ pSel=s.id; renderProg(); window.scrollTo(0,0); };
+    L.appendChild(b);
+  });
+}
+function stat(n,l){ return '<div class="pstat"><div class="pstat-n">'+n+'</div><div class="pstat-l">'+l+'</div></div>'; }
+
+/* simple line chart, no libraries */
+function lineSVG(pts,color,unit){
+  var W=320, H=150, PL=34, PR=14, PT=18, PB=26;
+  if(!pts.length) return '';
+  if(pts.length===1) pts=[{v:pts[0].v,l:pts[0].l},{v:pts[0].v,l:pts[0].l}];
+  var vals=pts.map(function(p){ return p.v; });
+  var mn=Math.min.apply(null,vals), mx=Math.max.apply(null,vals);
+  if(mx===mn){ mx=mn+Math.max(1,mn*0.05); mn=Math.max(0,mn-Math.max(1,mn*0.05)); }
+  var pad=(mx-mn)*0.15; mn=Math.max(0,mn-pad); mx=mx+pad;
+  var x=function(i){ return PL+(W-PL-PR)*(pts.length===1?0.5:i/(pts.length-1)); };
+  var y=function(v){ return PT+(H-PT-PB)*(1-(v-mn)/(mx-mn)); };
+
+  var s='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet">';
+  for(var g=0;g<=2;g++){
+    var gv=mn+(mx-mn)*g/2, gy=y(gv);
+    s+='<line x1="'+PL+'" y1="'+gy.toFixed(1)+'" x2="'+(W-PR)+'" y2="'+gy.toFixed(1)+'" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>';
+    s+='<text x="'+(PL-7)+'" y="'+(gy+3.5).toFixed(1)+'" fill="#53605C" font-size="9" text-anchor="end" font-family="JetBrains Mono,monospace">'+Math.round(gv)+'</text>';
+  }
+  var pl='';
+  pts.forEach(function(p,i){ pl+=(i?' ':'')+x(i).toFixed(1)+','+y(p.v).toFixed(1); });
+  s+='<polyline points="'+pl+'" fill="none" stroke="'+color+'" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>';
+  pts.forEach(function(p,i){
+    s+='<circle cx="'+x(i).toFixed(1)+'" cy="'+y(p.v).toFixed(1)+'" r="3.4" fill="#101416" stroke="'+color+'" stroke-width="2"/>';
+  });
+  var lastI=pts.length-1;
+  s+='<text x="'+x(lastI).toFixed(1)+'" y="'+(y(pts[lastI].v)-9).toFixed(1)+'" fill="'+color+'" font-size="11" font-weight="700" text-anchor="end" font-family="JetBrains Mono,monospace">'+trim1(pts[lastI].v)+' '+unit+'</text>';
+  s+='<text x="'+PL+'" y="'+(H-7)+'" fill="#53605C" font-size="9" font-family="JetBrains Mono,monospace">'+esc(pts[0].l)+'</text>';
+  s+='<text x="'+(W-PR)+'" y="'+(H-7)+'" fill="#53605C" font-size="9" text-anchor="end" font-family="JetBrains Mono,monospace">'+esc(pts[lastI].l)+'</text>';
+  s+='</svg>';
+  return s;
+}
+
+/* ---------- BODYWEIGHT ---------- */
+function renderBW(){
+  var di=document.getElementById('bw-date');
+  if(!di.value) di.value=todayStr();
+
+  if(!bwLog.length){
+    document.getElementById('bw-stats').innerHTML='';
+    document.getElementById('bw-chart').innerHTML='<div class="empty" style="padding:40px 24px"><b>No weigh-ins yet</b>Add one below whenever. Once a week is plenty.</div>';
+    document.getElementById('bw-list').innerHTML='';
+    return;
+  }
+  var first=bwLog[bwLog.length-1], last=bwLog[0];
+  var diff=num(last.v)-num(first.v);
+  var sign=diff>0?'+':'';
+  document.getElementById('bw-stats').innerHTML=
+    stat(trim1(num(last.v)),'Latest (lb)')+
+    stat(sign+trim1(diff),'Since '+fshort(first.d))+
+    stat(bwLog.length,'Weigh-ins');
+
+  var pts=[];
+  for(var i=bwLog.length-1;i>=0;i--) pts.push({v:num(bwLog[i].v),l:fshort(bwLog[i].d)});
+  document.getElementById('bw-chart').innerHTML=
+    '<div class="chartwrap"><div class="chart-t">Bodyweight</div><div class="chart">'+lineSVG(pts,'#4A8F66','lb')+'</div></div>';
+
+  var L=document.getElementById('bw-list'); L.innerHTML='';
+  bwLog.forEach(function(e){
+    var r=document.createElement('div'); r.className='bwrow';
+    r.innerHTML='<div class="bwrow-d">'+fshort(e.d)+'</div><div class="bwrow-v">'+trim1(num(e.v))+' lb</div>';
+    var x=document.createElement('button'); x.className='bwrow-x'; x.innerHTML='&#10005;';
+    x.onclick=function(){ delBW(e.d); };
+    r.appendChild(x); L.appendChild(r);
+  });
+}
+function addBW(){
+  var d=document.getElementById('bw-date').value, v=document.getElementById('bw-val').value;
+  if(!d||!v){ alert('Pick a date and put in a weight.'); return; }
+  bwLog=bwLog.filter(function(e){ return e.d!==d; });
+  bwLog.push({d:d,v:String(num(v))});
+  bwLog.sort(function(a,b){ return a.d<b.d?1:(a.d>b.d?-1:0); });
+  saveBW();
+  document.getElementById('bw-val').value='';
+  renderBW();
+}
+function delBW(d){
+  if(!confirm('Delete this weigh-in?')) return;
+  bwLog=bwLog.filter(function(e){ return e.d!==d; });
+  saveBW(); renderBW();
+}
+
+/* ---------- HISTORY ---------- */
+function renderHist(){
+  var L=document.getElementById('hist');
+  if(!hist.length){ L.innerHTML='<div class="empty"><b>Nothing logged yet</b>Your first session lands here.</div>'; return; }
+  L.innerHTML='';
+  hist.forEach(function(h,i){
+    var all=h.done===h.total;
+    var lines='';
+    (h.logs||[]).forEach(function(l){
+      lines+='<div class="hlog"><span style="color:'+(h.color||'var(--turquoise)')+'">&bull;</span> '+esc(l.n)+' &mdash; '+fsets(l.sets||[])+'</div>';
+    });
+    var v=volOf(h);
+    var c=document.createElement('div'); c.className='hcard';
+    c.innerHTML='<div class="hdate" style="color:'+(h.color||'var(--text-mute)')+'">'+fdateL(h.date)+'</div>'+
+      '<div class="hname">'+esc(h.name||h.day)+(all?' <span style="color:var(--turquoise)">&#10003;</span>':'')+'</div>'+
+      '<div class="hmeta">'+h.done+'/'+h.total+' exercises &middot; '+ftime(h.date)+(v?' &middot; '+fvol(v)+' lbs':'')+'</div>'+
+      (lines?'<div class="hlogs">'+lines+'</div>':'')+
+      (h.note?'<div class="hnote">'+esc(h.note)+'</div>':'');
+    var x=document.createElement('button'); x.className='hdel'; x.innerHTML='&#10005;';
+    x.onclick=function(){ delHist(h.date); };
+    c.appendChild(x);
+    L.appendChild(c);
+  });
+}
+function delHist(date){
+  if(!confirm('Delete this workout from history? It cannot be undone.')) return;
+  hist=hist.filter(function(h){ return h.date!==date; });
+  lastLog=rebuildLastLog(hist,{});
+  saveHist(); saveLog(); renderHist();
+}
+
+/* ---------- SETTINGS ---------- */
+function openSet(){
+  document.getElementById('drop').classList.remove('on');
+  document.getElementById('cbtn').classList.remove('on');
+  document.getElementById('cbtn2').classList.remove('on');
+  document.getElementById('fname').textContent='';
+  document.getElementById('fin').value=''; pend=null;
+  var r=document.getElementById('rest-opts'); r.innerHTML='';
+  [45,60,90,120].forEach(function(v){
+    var b=document.createElement('button');
+    b.className='chip'+(restLen===v?' on':'');
+    b.style.flex='1'; b.style.textAlign='center';
+    b.textContent=v<60?(v+'s'):((v/60)+' min');
+    b.onclick=function(){ restLen=v; saveRest(); openSet(); if(day) renderEx(); };
+    r.appendChild(b);
+  });
+  document.getElementById('ver').textContent='BUILD '+SEED_VERSION+' / ROTATION '+PLAN_VERSION;
+  document.getElementById('setmodal').classList.add('on');
+}
+function closeSet(e){ if(e&&e.target.id!=='setmodal') return; document.getElementById('setmodal').classList.remove('on'); }
+
+function exp(){
+  var d={exportedAt:new Date().toISOString(),app:"Wyatt lift log",build:SEED_VERSION,history:hist,lastLog:lastLog,plan:plan,bw:bwLog};
+  var b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+  var u=URL.createObjectURL(b), a=document.createElement('a');
+  a.href=u; a.download='wyatt-lift-'+todayStr()+'.json'; a.click();
+  setTimeout(function(){ URL.revokeObjectURL(u); },1500);
+}
+function tgDrop(){
+  var d=document.getElementById('drop'); d.classList.toggle('on');
+  if(!d.classList.contains('on')){
+    document.getElementById('cbtn').classList.remove('on');
+    document.getElementById('cbtn2').classList.remove('on');
+    pend=null;
+  }
+}
+function pick(e){
+  var f=e.target.files[0]; if(!f) return;
+  var r=new FileReader();
+  r.onload=function(ev){
+    try{
+      var p=JSON.parse(ev.target.result);
+      if(!p.history||!(p.history instanceof Array)){ alert('That is not a valid backup file.'); return; }
+      pend=p;
+      document.getElementById('fname').textContent=f.name+' - '+p.history.length+' workouts';
+      document.getElementById('cbtn').classList.add('on');
+      document.getElementById('cbtn2').classList.add('on');
+    }catch(err){ alert('Could not read that file.'); }
+  };
+  r.readAsText(f);
+}
+function doImp(merge){
+  if(!pend) return;
+  if(!merge && !confirm('Replace everything on this phone with the backup?')) return;
+  hist=merge?mergeHist(hist,pend.history):pend.history;
+  bwLog=merge?mergeBW(bwLog,pend.bw||[]):(pend.bw||[]);
+  if(pend.plan&&!merge){ plan=pend.plan; savePlan(); }
+  else if(pend.plan&&merge&&!readJSON(K_PLAN,null)){ plan=pend.plan; savePlan(); }
+  lastLog=rebuildLastLog(hist,merge?lastLog:(pend.lastLog||{}));
+  saveHist(); saveLog(); saveBW();
+  pend=null; closeSet(); renderHome();
+  alert(merge?('Merged. You now have '+hist.length+' workouts.'):'Backup restored.');
+}
+function resetDays(){
+  if(!confirm('Reset ALPHA, BRAVO and CHARLIE back to how they were built? Your history stays.')) return;
+  plan=makeDefault(); savePlan(); closeSet();
+  if(day&&plan[day]){ renderEx(); } 
+  renderHome();
+}
+function clearHist(){
+  if(!confirm('Delete every logged workout? This cannot be undone.')) return;
+  if(!confirm('Really sure? Export a backup first if there is any doubt.')) return;
+  hist=[]; lastLog={}; saveHist(); saveLog(); closeSet(); renderHome();
+}
+
+/* ---------- DATES ---------- */
+function fdate(i){ return new Date(i).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function fdateL(i){ return new Date(i).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}).toUpperCase(); }
+function ftime(i){ return new Date(i).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }
+/* date-only strings must be built locally or they land a day early */
+function pdate(s){
+  if(!s) return new Date();
+  if(s.length===10&&s.indexOf('-')===4){
+    var a=s.split('-');
+    return new Date(parseInt(a[0],10),parseInt(a[1],10)-1,parseInt(a[2],10));
+  }
+  return new Date(s);
+}
+function fshort(s){ return pdate(s).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function todayStr(){
+  var d=new Date(), m=d.getMonth()+1, dd=d.getDate();
+  return d.getFullYear()+'-'+(m<10?'0':'')+m+'-'+(dd<10?'0':'')+dd;
+}
+
+/* ---------- BOOT ---------- */
+window.addEventListener('beforeunload',function(){ if(day) saveActive(); });
+renderHome();
+</script>
+</body>
+</html>
